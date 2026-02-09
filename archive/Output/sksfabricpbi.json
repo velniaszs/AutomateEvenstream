@@ -1,0 +1,59 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "2bc65455-5460-495f-b583-d1db2f2b0b19",
+                        "name":  "poc-wks-pbi",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "e4ae08f8-0127-4445-b4b7-63e9a661da43",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "876149a5-7056-44a0-89af-3eb67bc8d396",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "DirectIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                                "tableName":  "WorkspaceLogs",
+                                                "connectionName":  "sksfabricpbi",
+                                                "mappingRuleName":  "WorkspaceLogs_mapping"
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "sksfabricpbi-stream"
+                                                }
+                                            ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "4902b2da-9900-418b-8faf-4fa83b527ae1",
+                        "name":  "sksfabricpbi-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "poc-wks-pbi"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}

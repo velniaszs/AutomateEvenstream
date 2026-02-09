@@ -1,0 +1,19 @@
+{
+    "value":  [
+                  {
+                      "id":  "b6743b73-70c2-44a1-bc6e-5769c59fda7a",
+                      "displayName":  "dummyregion",
+                      "workspaceId":  "611585cb-6332-4849-995e-efce839973f1"
+                  },
+                  {
+                      "id":  "99bb8834-4103-41c0-b484-4944888389bb",
+                      "displayName":  "North Europe",
+                      "workspaceId":  "611585cb-6332-4849-995e-efce839973f1"
+                  },
+                  {
+                      "id":  "ccd7b1a2-13a2-4bb2-92ec-3b06be7b69f0",
+                      "displayName":  "West US 3",
+                      "workspaceId":  "611585cb-6332-4849-995e-efce839973f1"
+                  }
+              ]
+}

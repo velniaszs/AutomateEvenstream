@@ -1,0 +1,74 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "9005ec1d-fd69-4597-8ad4-d524c73ebbce",
+                        "name":  "ab_test2",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "af2b1ae0-5660-454c-9952-b01cffde1d2f",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "f6fb0c38-345a-453d-9a09-58a94b6bea71",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "ProcessedIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "e12cfde7-e6cb-40ad-83d1-1327671c8808",
+                                                "databaseName":  "MonitoringEventhouse",
+                                                "tableName":  "WorkspaceLogs",
+                                                "inputSerialization":  {
+                                                                           "type":  "Json",
+                                                                           "properties":  {
+                                                                                              "encoding":  "UTF8"
+                                                                                          }
+                                                                       }
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "LoadWorkspaceChanges-stream"
+                                                }
+                                            ],
+                             "inputSchemas":  [
+                                                  {
+                                                      "name":  "LoadWorkspaceChanges-stream",
+                                                      "schema":  {
+                                                                     "columns":  [
+
+                                                                                 ]
+                                                                 }
+                                                  }
+                                              ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "f028ad3b-e3e3-4968-9ae5-dfdb8b21b10b",
+                        "name":  "LoadWorkspaceChanges-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "ab_test2"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}

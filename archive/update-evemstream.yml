@@ -1,0 +1,94 @@
+trigger: none
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  # Azure Service Connection Name (Created in Azure DevOps Project Settings -> Service Connections)
+  azureServiceConnection: 'devops-service-connection'
+  
+  
+  # Service Principal (App Registration) Details
+  tenantId: '9e929790-272d-4977-a2ab-301443c11ece'
+  clientId: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
+
+  # Path to the script you want to run (relative to repo root)
+  scriptPath: 'UpdateEvenstream/update-eventstream.ps1'
+
+steps:
+# 1. Retrieve the Client Secret from Azure Key Vault
+- task: AzureKeyVault@2
+  displayName: 'Get Secrets from Key Vault'
+  inputs:
+    azureSubscription: '$(azureServiceConnection)'
+    KeyVaultName: 'ab-fabric-automation-akv'
+    SecretsFilter: 'fabric-monit-secret'
+    RunAsPreJob: false
+
+# 2. Authenticate (Get OAuth Token)
+- task: PowerShell@2
+  displayName: 'Authenticate to Fabric'
+  env:
+    CLIENT_SECRET: $(fabric-monit-secret)
+  inputs:
+    targetType: 'inline'
+    script: |
+      $ErrorActionPreference = "Stop"
+
+      # --- Retrieve Secret ---
+      if ([string]::IsNullOrWhiteSpace($env:CLIENT_SECRET)) {
+          Write-Error "Client secret is empty. Check Key Vault task configuration."
+          exit 1
+      }
+
+      # --- Authenticate ---
+      $tenantId = "$(tenantId)"
+      $clientId = "$(clientId)"
+      $scope = "https://api.fabric.microsoft.com/.default"
+      $tokenUrl = "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token"
+
+      $body = @{
+          grant_type    = "client_credentials"
+          client_id     = $clientId
+          client_secret = $env:CLIENT_SECRET
+          scope         = $scope
+      }
+
+      Write-Host "Authenticating to Azure AD ($tokenUrl)..."
+      try {
+          $response = Invoke-RestMethod -Uri $tokenUrl -Method Post -Body $body
+          $token = $response.access_token
+      }
+      catch {
+          Write-Error "Authentication failed. $_"
+          exit 1
+      }
+
+      if (-not $token) {
+          Write-Error "Failed to retrieve access token."
+          exit 1
+      }
+      # --- Set Pipeline Variable ---
+      # isSecret=true masks the variable in logs
+      Write-Host "##vso[task.setvariable variable=FabricAccessToken;isSecret=true]$token"
+      Write-Host "Successfully authenticated and set 'FabricAccessToken' variable."
+      
+
+# 3. Run the Target Script
+- task: PowerShell@2
+  displayName: 'Run Eventstream Script'
+  env:
+    FABRIC_TOKEN: $(FabricAccessToken)
+  inputs:
+    targetType: 'inline'
+    script: |
+      $ErrorActionPreference = "Stop"
+      $scriptToRun = "$(System.DefaultWorkingDirectory)\UpdateEvenstream\update-eventstream.ps1"
+
+      if (-not (Test-Path $scriptToRun)) {
+          Write-Error "Script not found: $scriptToRun"
+          exit 1
+      }
+
+      Write-Host "Executing script: $scriptToRun"
+      & $scriptToRun -WorkspaceId "611585cb-6332-4849-995e-efce839973f1" -EventstreamId "595ac356-b237-422f-a5d4-6c85146a3897" -AuthToken $env:FABRIC_TOKEN 

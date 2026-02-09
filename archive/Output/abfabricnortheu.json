@@ -1,0 +1,59 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "e90c8034-177b-4bae-8d9a-667a958a8c1c",
+                        "name":  "ab_test5",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "f085bd5f-211d-4e78-8795-0db1a1e464f1",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "061e3410-b72c-4471-9a30-ec94c7ea2c54",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "DirectIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                                "tableName":  "WorkspaceLogs",
+                                                "connectionName":  "abfabricnortheu",
+                                                "mappingRuleName":  "WorkspaceLogs_mapping"
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "abfabricnortheu-stream"
+                                                }
+                                            ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "5170a0dc-e71d-4c6c-950c-9694a185c856",
+                        "name":  "abfabricnortheu-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "ab_test5"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}

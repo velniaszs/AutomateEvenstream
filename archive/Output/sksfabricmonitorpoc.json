@@ -1,0 +1,59 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "09144f39-ac41-414a-9e6e-e8367efe4074",
+                        "name":  "poc-wks-monitor",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "ee36dda9-f842-49fe-a748-5fcf49bd0865",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "1e29999c-01a5-4cb3-b1b3-a9eeeb3298fb",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "DirectIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                                "tableName":  "WorkspaceLogs",
+                                                "connectionName":  "sksfabricmonitorpoc",
+                                                "mappingRuleName":  "WorkspaceLogs_mapping"
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "sksfabricmonitorpoc-stream"
+                                                }
+                                            ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "9ddb64d9-b4c9-44dd-a113-3bfce16ef77e",
+                        "name":  "sksfabricmonitorpoc-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "poc-wks-monitor"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}

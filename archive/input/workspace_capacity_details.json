@@ -1,0 +1,178 @@
+[
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "sks-demo-ws",
+        "WorkspaceId":  "0b22017b-1209-4ddd-88eb-97fded62d8c6"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "demo-wks-01",
+        "WorkspaceId":  "5e54ea4e-ad3e-46a1-bb4c-3ab1c7e63d70"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "demo-wks-02",
+        "WorkspaceId":  "ef8eb25f-dcf1-4a8b-a300-496bd34ca187"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "demo-wks-04",
+        "WorkspaceId":  "6fe80730-85b8-4473-b4d0-6d85318cb32f"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "demo-wks-03",
+        "WorkspaceId":  "9c1ee831-7e13-4fba-ae2c-c1b961e9ddd7"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___1",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "health-wks-01",
+        "WorkspaceId":  "126ecad6-6b73-4df9-9217-11f5ecac07db"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___1",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "poc-wks-02",
+        "WorkspaceId":  "93826594-821d-46c8-83f6-d8073e73bf0c"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___1",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "FUAM",
+        "WorkspaceId":  "f036653e-5322-4d10-808d-6fb518979b5d"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___1",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "fabric_inventory_solution",
+        "WorkspaceId":  "71632c8a-05df-4505-9a0f-1763c43830e5"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___1",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "oap-wks-05",
+        "WorkspaceId":  "0cc47dfa-f9b2-4e97-9d9b-a9817ade9bad"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___2",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "poc-wks-03",
+        "WorkspaceId":  "f88958ec-9586-4e79-9a83-db8e80d690d3"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksfabricpbi",
+        "workspaceGroup":  "sksfabricpbi",
+        "CapacityId":  "57a9444c-057d-4b4d-b687-4df54eb26239",
+        "WorkspaceName":  "poc-wks-pbi",
+        "WorkspaceId":  "e4ae08f8-0127-4445-b4b7-63e9a661da43"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___2",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "poc-wks-04",
+        "WorkspaceId":  "4d05a266-ebdf-4b8d-9db2-7acb82a43a84"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___2",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "ab_test",
+        "WorkspaceId":  "e4ec923d-e6fb-4883-bc66-44d41f23bb7d"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___2",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "ab_test2",
+        "WorkspaceId":  "af2b1ae0-5660-454c-9952-b01cffde1d2f"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___2",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "poc-wks-06",
+        "WorkspaceId":  "f851e11f-18d5-4033-8111-9f3b97c04f3f"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___3",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "poc-wks-99",
+        "WorkspaceId":  "de5f1bf8-5904-44ca-8040-65974230f755"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___3",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "ab_Test3",
+        "WorkspaceId":  "f8ad2b4f-f3a0-4abe-a62d-dd0e5ff84a2e"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksfabricmonitorpoc",
+        "workspaceGroup":  "sksfabricmonitorpoc",
+        "CapacityId":  "7dde40be-0e5a-4d3d-992d-6e31db969f75",
+        "WorkspaceName":  "poc-wks-monitor",
+        "WorkspaceId":  "ee36dda9-f842-49fe-a748-5fcf49bd0865"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___3",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "Microsoft Fabric Capacity Metrics 06/01/2026, 17:26:55",
+        "WorkspaceId":  "41ed136c-3507-4f55-8873-e7ec06ea6640"
+    },
+    {
+        "RegionName":  "North Europe",
+        "CapacityName":  "abfabricnortheu",
+        "workspaceGroup":  "abfabricnortheu",
+        "CapacityId":  "07564e0d-987c-4255-b5b8-f7da53d44df6",
+        "WorkspaceName":  "ab_test5",
+        "WorkspaceId":  "f085bd5f-211d-4e78-8795-0db1a1e464f1"
+    },
+    {
+        "RegionName":  "West US 3",
+        "CapacityName":  "sksdemofabric01",
+        "workspaceGroup":  "sksdemofabric01___3",
+        "CapacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "WorkspaceName":  "ws-monitor-suzi",
+        "WorkspaceId":  "937f0201-1973-4cc4-a834-8280e7118dca"
+    }
+]

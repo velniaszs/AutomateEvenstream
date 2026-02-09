@@ -1,0 +1,135 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "6b5da79f-bb35-48f4-99cd-335fdad722d3",
+                        "name":  "health-wks-01",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "126ecad6-6b73-4df9-9217-11f5ecac07db",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "6b020a67-c3d6-42bb-a487-d1a8ad289038",
+                        "name":  "poc-wks-02",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "93826594-821d-46c8-83f6-d8073e73bf0c",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "bd58ccc4-992c-489f-a3d7-d0506a7627d3",
+                        "name":  "FUAM",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "f036653e-5322-4d10-808d-6fb518979b5d",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "df428088-f653-4091-b08a-4775097b3041",
+                        "name":  "fabric_inventory_solution",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "71632c8a-05df-4505-9a0f-1763c43830e5",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "a664efa2-4d91-4d00-a2e2-3d01f475e96b",
+                        "name":  "oap-wks-05",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "0cc47dfa-f9b2-4e97-9d9b-a9817ade9bad",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "05b10438-1826-42c1-b6c2-08f1914fe94f",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "DirectIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                                "tableName":  "WorkspaceLogs",
+                                                "connectionName":  "sksdemofabric01___1",
+                                                "mappingRuleName":  "WorkspaceLogs_mapping"
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "sksdemofabric01___1-stream"
+                                                }
+                                            ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "6f605e28-2c39-4236-a20c-6ad885a23223",
+                        "name":  "sksdemofabric01___1-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "health-wks-01"
+                                           },
+                                           {
+                                               "name":  "poc-wks-02"
+                                           },
+                                           {
+                                               "name":  "FUAM"
+                                           },
+                                           {
+                                               "name":  "fabric_inventory_solution"
+                                           },
+                                           {
+                                               "name":  "oap-wks-05"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}

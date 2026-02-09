@@ -1,0 +1,116 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "47654e1e-5fc9-43f3-ac95-d7353b62c88d",
+                        "name":  "poc-wks-99",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "de5f1bf8-5904-44ca-8040-65974230f755",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "70b7e255-e5c3-4176-ac8f-ad29366bf160",
+                        "name":  "ab_Test3",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "f8ad2b4f-f3a0-4abe-a62d-dd0e5ff84a2e",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "cf79f4e1-1b18-4541-9707-61886ad8395f",
+                        "name":  "Microsoft Fabric Capacity Metrics 06/01/2026, 17:26:55",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "41ed136c-3507-4f55-8873-e7ec06ea6640",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "2da631e2-5735-493e-86e7-5210d11bac1e",
+                        "name":  "ws-monitor-suzi",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "937f0201-1973-4cc4-a834-8280e7118dca",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "fab66434-d680-4cf3-9851-fe9925417dc9",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "DirectIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                                "tableName":  "WorkspaceLogs",
+                                                "connectionName":  "sksdemofabric01___3",
+                                                "mappingRuleName":  "WorkspaceLogs_mapping"
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "sksdemofabric01___3-stream"
+                                                }
+                                            ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "7fff5400-8e3f-4133-988f-bf7c0d6fa5eb",
+                        "name":  "sksdemofabric01___3-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "poc-wks-99"
+                                           },
+                                           {
+                                               "name":  "ab_Test3"
+                                           },
+                                           {
+                                               "name":  "Microsoft Fabric Capacity Metrics 06/01/2026, 17:26:55"
+                                           },
+                                           {
+                                               "name":  "ws-monitor-suzi"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}

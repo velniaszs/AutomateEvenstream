@@ -1,0 +1,157 @@
+trigger: none
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  # Replace these with your actual values or set them in the pipeline UI
+  WorkspaceId: '611585cb-6332-4849-995e-efce839973f1' 
+  EventhouseName: 'MonitoringEventhouse'
+  ServiceConnectionName: 'devops-service-connection'
+  tenantId: '9e929790-272d-4977-a2ab-301443c11ece'
+  clientId: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
+
+steps:
+- task: AzureKeyVault@2
+  displayName: 'Get Secrets from Key Vault'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    KeyVaultName: 'ab-fabric-automation-akv'
+    SecretsFilter: 'fabric-monit-secret'
+    RunAsPreJob: false
+
+- task: AzureCLI@2
+  displayName: 'Step 1 Get Fabric Token'
+  env:
+    CLIENT_SECRET: $(fabric-monit-secret)
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $fabricTokenScript = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/get-token.ps1"
+      $fabricToken = & $fabricTokenScript -tenantId "$(tenantId)" -clientId "$(clientId)" -client_secret $env:CLIENT_SECRET -scope_type "fabric"
+      if ([string]::IsNullOrWhiteSpace($fabricToken)) { Write-Error "Failed to retrieve Fabric Token."; exit 1 }
+      Write-Host "##vso[task.setvariable variable=FabricToken;isSecret=true]$fabricToken"
+
+- task: AzureCLI@2
+  displayName: 'Step 2: Get KQL Token'
+  env:
+    CLIENT_SECRET: $(fabric-monit-secret)
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $KQLTokenScript = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/get-token.ps1"
+      $KqlToken = & $KQLTokenScript -tenantId "$(tenantId)" -clientId "$(clientId)" -client_secret $env:CLIENT_SECRET -scope_type "kusto"
+      if ([string]::IsNullOrWhiteSpace($KqlToken)) { Write-Error "Failed to retrieve Fabric Token."; exit 1 }
+      Write-Host "##vso[task.setvariable variable=KqlToken;isSecret=true]$KqlToken"
+
+- task: AzureCLI@2
+  displayName: 'Step 3: Create Eventhouse'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/create-eventhouse.ps1"
+      & $script -WorkspaceId "$(WorkspaceId)" -AuthToken "$(FabricToken)" -DisplayName "$(EventhouseName)"
+
+- task: AzureCLI@2
+  displayName: 'Step 4: Create Table'
+  name: CreateTable
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/create-table.ps1"
+      $DatabaseId = & $script -WorkspaceId "$(WorkspaceId)" -AuthToken "$(FabricToken)" -KqlAuthToken "$(KqlToken)" -EventhouseName "$(EventhouseName)"
+      Write-Host "##vso[task.setvariable variable=DatabaseId]$DatabaseId"
+
+- task: AzureCLI@2
+  displayName: 'Step 5: Download Capacities'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/list-capacities.ps1"
+      & $script -AuthToken "$(FabricToken)"
+
+- task: AzureCLI@2
+  displayName: 'Step 6: Download Workspaces'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/list-workspaces.ps1"
+      & $script -AuthToken "$(FabricToken)" -VerifyOAP $false -WorkspaceId "$(WorkspaceId)"
+
+- task: AzureCLI@2
+  displayName: 'Step 7: Join Workspaces and Capacities'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/join-workspaces-capacities.ps1"
+      & $script -GroupSize 5
+
+- task: AzureCLI@2
+  displayName: 'Step 8: Create Folders'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/create-region-folders.ps1"
+      & $script -WorkspaceId "$(WorkspaceId)" -AuthToken "$(FabricToken)"
+
+- task: AzureCLI@2
+  displayName: 'Step 9: Get Folders'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/get-folders.ps1"
+      & $script -WorkspaceId "$(WorkspaceId)" -AuthToken "$(FabricToken)"
+
+- task: AzureCLI@2
+  displayName: 'Step 10: Create Blank Eventstreams'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/create-all-evenstreams-in-folders.ps1"
+      & $script -WorkspaceId "$(WorkspaceId)" -AuthToken "$(FabricToken)"
+
+- task: AzureCLI@2
+  displayName: 'Step 11: Create Eventstream Data Files'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/create-evenstream-data.ps1"
+      & $script -WorkspaceId "$(WorkspaceId)" -DatabaseName "$(EventhouseName)" -DatabaseId "$(DatabaseId)"
+
+- task: PowerShell@2
+  displayName: 'Wait for 1 minute'
+  inputs:
+    targetType: 'inline'
+    script: 'Start-Sleep -Seconds 60'
+
+- task: AzureCLI@2
+  displayName: 'Step 12: Update Eventstreams Data'
+  inputs:
+    azureSubscription: '$(ServiceConnectionName)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      $script = Join-Path "$(System.DefaultWorkingDirectory)" "UpdateEvenstream/update-all-eventstreams.ps1"
+      & $script -WorkspaceId "$(WorkspaceId)" -AuthToken "$(FabricToken)"

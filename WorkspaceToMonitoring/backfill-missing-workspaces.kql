@@ -1,0 +1,36 @@
+// Command to backfill missing workspaces into WorkspaceOutboundAccessProtection
+// Finds workspaces in WorkspaceLogs that are missing from WorkspaceOutboundAccessProtection
+// and inserts a default "EnableWorkspaceOutboundAccessProtection" record for them dated 2026-01-01.
+
+.append WorkspaceOutboundAccessProtection <|
+WorkspaceLogs
+| where isnotempty(data_workspaceId)
+| summarize arg_max(['time'], data_workspaceName) by data_workspaceId
+| project WorkspaceId = data_workspaceId, WorkSpaceName = data_workspaceName
+| join kind=leftanti (
+    WorkspaceOutboundAccessProtection
+    | distinct WorkspaceId
+) on WorkspaceId
+| extend 
+    Activity = "EnableWorkspaceOutboundAccessProtection",
+    BillingType = 0,
+    ClientIP = "178.196.195.120", // From example
+    CreationTime = datetime(2026-01-01),
+    Experience = "",
+    Id = new_guid(),
+    ObjectDisplayName = "",
+    ObjectId = "00000000-0000-0000-0000-000000000000",
+    ObjectType = "",
+    Operation = "EnableWorkspaceOutboundAccessProtection",
+    OrganizationId = "9e929790-272d-4977-a2ab-301443c11ece", // From example
+    RecordType = 20,
+    RefreshEnforcementPolicy = 0,
+    RequestId = tostring(new_guid()),
+    ResultStatus = "Succeeded",
+    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0",
+    UserId = "admin@MngEnvMCAP985281.onmicrosoft.com",
+    UserKey = "1003200475F94C5D", // From example
+    UserType = 0,
+    Workload = "PowerBI"
+// Verify column order matches target table schema if necessary, though Kusto usually matches by name.
+| project Activity, BillingType, ClientIP, CreationTime, Experience, Id, ObjectDisplayName, ObjectId, ObjectType, Operation, OrganizationId, RecordType, RefreshEnforcementPolicy, RequestId, ResultStatus, UserAgent, UserId, UserKey, UserType, WorkSpaceName, Workload, WorkspaceId

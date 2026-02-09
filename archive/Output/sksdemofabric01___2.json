@@ -1,0 +1,135 @@
+﻿{
+    "sources":  [
+                    {
+                        "id":  "b1a42fac-6edf-4954-b8a4-03e092d580fb",
+                        "name":  "poc-wks-03",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "f88958ec-9586-4e79-9a83-db8e80d690d3",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "c06a0053-da87-40b1-9cc0-d84d78839eea",
+                        "name":  "poc-wks-04",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "4d05a266-ebdf-4b8d-9db2-7acb82a43a84",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "0593b9b7-a130-4273-906d-5510e0c18713",
+                        "name":  "ab_test",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "e4ec923d-e6fb-4883-bc66-44d41f23bb7d",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "db41bed0-eb26-4604-b61b-656ad04e9615",
+                        "name":  "ab_test2",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "af2b1ae0-5660-454c-9952-b01cffde1d2f",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    },
+                    {
+                        "id":  "bd9a70fb-336f-48e9-96f3-a9a917aac6a0",
+                        "name":  "poc-wks-06",
+                        "type":  "FabricWorkspaceItemEvents",
+                        "properties":  {
+                                           "eventScope":  "Workspace",
+                                           "workspaceId":  "f851e11f-18d5-4033-8111-9f3b97c04f3f",
+                                           "includedEventTypes":  [
+                                                                      "Microsoft.Fabric.ItemCreateSucceeded",
+                                                                      "Microsoft.Fabric.ItemDeleteSucceeded"
+                                                                  ],
+                                           "filters":  [
+
+                                                       ]
+                                       }
+                    }
+                ],
+    "destinations":  [
+                         {
+                             "id":  "38ad66cb-0ddc-401e-83ef-f6e491f0ed09",
+                             "name":  "Eventhouse",
+                             "type":  "Eventhouse",
+                             "properties":  {
+                                                "dataIngestionMode":  "DirectIngestion",
+                                                "workspaceId":  "611585cb-6332-4849-995e-efce839973f1",
+                                                "itemId":  "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                                "tableName":  "WorkspaceLogs",
+                                                "connectionName":  "sksdemofabric01___2",
+                                                "mappingRuleName":  "WorkspaceLogs_mapping"
+                                            },
+                             "inputNodes":  [
+                                                {
+                                                    "name":  "sksdemofabric01___2-stream"
+                                                }
+                                            ]
+                         }
+                     ],
+    "streams":  [
+                    {
+                        "id":  "6ea3767c-bf2d-49ff-a30e-7c25ab461ff0",
+                        "name":  "sksdemofabric01___2-stream",
+                        "type":  "DefaultStream",
+                        "properties":  {
+
+                                       },
+                        "inputNodes":  [
+                                           {
+                                               "name":  "poc-wks-03"
+                                           },
+                                           {
+                                               "name":  "poc-wks-04"
+                                           },
+                                           {
+                                               "name":  "ab_test"
+                                           },
+                                           {
+                                               "name":  "ab_test2"
+                                           },
+                                           {
+                                               "name":  "poc-wks-06"
+                                           }
+                                       ]
+                    }
+                ],
+    "operators":  [
+
+                  ],
+    "compatibilityLevel":  "1.1"
+}
