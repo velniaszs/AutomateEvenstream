@@ -3,13 +3,6 @@ param(
     [string]$sourceWorkspaceName,
 
     [Parameter(Mandatory = $true)]
-    [string]$sourceWorkspaceId,
-
-    [Parameter(Mandatory = $false)]
-    [ValidateSet("yes", "no")]
-    [string]$CheckWorkspace = "yes",
-
-    [Parameter(Mandatory = $true)]
     [string]$capacityName,
     
     [Parameter(Mandatory = $false)]
@@ -21,6 +14,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$AuthToken
 )
+
+$sourceWorkspaceName = $sourceWorkspaceName -replace '[^a-zA-Z0-9]', '-'
 
 if (-not (Test-Path $jsonPath)) {
     Write-Error "File not found: $jsonPath"
@@ -47,7 +42,7 @@ $jsonContent.sources = @($jsonContent.sources | Where-Object { $_.name -ne $sour
 $finalSourceCount = $jsonContent.sources.Count
 
 if ($finalSourceCount -eq 0) {
-    Write-Host "No sources remaining. Deleting Eventstream..."
+    #Write-Host "No sources remaining. Deleting Eventstream..."
     
     # Check if exists and get ID
     $getEvenstreamIdScript = Join-Path $PSScriptRoot "get-evenstream-id.ps1"
@@ -55,7 +50,7 @@ if ($finalSourceCount -eq 0) {
     
     if ($checkResult.Exists) {
         $esId = $checkResult.Id
-        Write-Host "Deleting Eventstream '$capacityName' (ID: $esId)..."
+        Write-Host "No sources left. Deleting Eventstream '$capacityName' (ID: $esId)..."
         
         $deleteUri = "https://api.fabric.microsoft.com/v1/workspaces/$destinationWorkspaceId/eventstreams/$esId"
         $headers = @{
@@ -64,7 +59,7 @@ if ($finalSourceCount -eq 0) {
         
         try {
             Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop
-            Write-Host "Successfully deleted Eventstream '$capacityName'." -ForegroundColor Green
+            #Write-Host "Successfully deleted Eventstream '$capacityName'."
             return $true
         }
         catch {
@@ -72,7 +67,7 @@ if ($finalSourceCount -eq 0) {
             return $false
         }
     } else {
-        Write-Warning "Eventstream '$capacityName' not found, cannot delete."
+        Write-Error "Eventstream '$capacityName' not found, cannot delete."
         return $false
     }
     
@@ -81,9 +76,10 @@ if ($finalSourceCount -eq 0) {
 
 } else {
     if ($finalSourceCount -lt $initialSourceCount) {
-        Write-Host "Removed source '$sourceWorkspaceName' from 'sources'."
+        #Write-Host "Removed source '$sourceWorkspaceName' from 'sources'."
     } else {
-        Write-Warning "Source '$sourceWorkspaceName' not found in 'sources'."
+        Write-Error "Source '$sourceWorkspaceName' not found in 'sources'."
+        exit 1
     }
 
     # 5. Remove the source from the stream's inputNodes
@@ -97,19 +93,21 @@ if ($finalSourceCount -eq 0) {
         $finalNodeCount = $stream.inputNodes.Count
         
         if ($finalNodeCount -lt $initialNodeCount) {
-            Write-Host "Removed '$sourceWorkspaceName' from stream '$capacityName-stream'."
+            #Write-Host "Removed '$sourceWorkspaceName' from stream '$capacityName-stream'."
         } else {
-            Write-Warning "'$sourceWorkspaceName' not found in stream '$capacityName-stream' inputNodes."
+            Write-Error "'$sourceWorkspaceName' not found in stream '$capacityName-stream' inputNodes."
+            exit 1
         }
     } else {
-        Write-Warning "Stream '$capacityName-stream' not found."
+        Write-Error "Stream '$capacityName-stream' not found."
+        exit 1
     }
     # 6. Save the file
     #    IMPORTANT: -Depth 10 is required to preserve nested properties
     $outputjsonPath = "$PSScriptRoot\Output\$capacityName.json"
     $jsonContent | ConvertTo-Json -Depth 10 | Set-Content -Path $outputjsonPath -Encoding UTF8
 
-    Write-Host "Successfully updated $outputjsonPath"
+    #Write-Host "Successfully updated $outputjsonPath"
     return $false
 
 }

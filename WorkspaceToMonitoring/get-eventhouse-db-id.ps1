@@ -28,7 +28,7 @@ $headers = @{
 }
 
 # 1. Check if Eventhouse exists
-Write-Host "Checking for Eventhouse '$EventhouseName'..."
+#Write-Host "Checking for Eventhouse '$EventhouseName'..."
 $eventhousesUri = "https://api.fabric.microsoft.com/v1/workspaces/$WorkspaceId/eventhouses"
 try {
     $eventhousesResponse = Invoke-RestMethod -Uri $eventhousesUri -Method Get -Headers $headers
@@ -45,11 +45,11 @@ if ($null -eq $eventhouse) {
     return
 }
 
-Write-Host "Found Eventhouse: $($eventhouse.displayName) (ID: $($eventhouse.id))"
+#Write-Host "Found Eventhouse: $($eventhouse.displayName) (ID: $($eventhouse.id))"
 
 # 2. Find the KQL Database
 # We assume the default database has the same name as the Eventhouse.
-Write-Host "Looking for KQL Database '$EventhouseName'..."
+#Write-Host "Looking for KQL Database '$EventhouseName'..."
 $kqlDbsUri = "https://api.fabric.microsoft.com/v1/workspaces/$WorkspaceId/kqlDatabases"
 try {
     $kqlDbsResponse = Invoke-RestMethod -Uri $kqlDbsUri -Method Get -Headers $headers
@@ -66,6 +66,6 @@ if ($null -eq $targetDb) {
     return
 }
 
-Write-Host "Found KQL Database: $($targetDb.displayName) (ID: $($targetDb.id))"
+#Write-Host "Found KQL Database: $($targetDb.displayName) (ID: $($targetDb.id))"
 
 return $targetDb.id

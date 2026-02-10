@@ -29,18 +29,12 @@ if ($null -eq $jsonContent) {
 
 # Check if source name already exists
 $existingName = $jsonContent.sources | Where-Object { $_.name -eq $sourceWorkspaceName }
-if ($existingName) {
-    Write-Warning "Source with name '$sourceWorkspaceName' already exists."
-}
 
 # Check if workspaceId already exists
 $existingId = $jsonContent.sources | Where-Object { $_.properties.workspaceId -eq $sourceWorkspaceId }
-if ($existingId) {
-    Write-Warning "Source with workspaceId '$sourceWorkspaceId' already exists."
-}
 
 if ($existingName -or $existingId) {
-    Write-Warning "Skipping addition due to existing source(s)."
+    #Write-Host "Skipping addition due to existing source(s)."
     return $true
 } else {
     return $false

@@ -14,7 +14,6 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Get existing Eventstreams in the workspace
-Write-Host "Checking if Eventstream '$EventstreamName' already exists in workspace '$WorkspaceId'..."
 $headers = @{
     "Authorization" = "Bearer $AuthToken"
     "Content-Type"  = "application/json"
@@ -31,7 +30,7 @@ catch {
 # Check if already exists
 $existing = $existingEventstreams | Where-Object { $_.displayName -eq $EventstreamName }
 if ($existing) {
-    Write-Host "'$EventstreamName' - Eventstream already exists (ID: $($existing.id))." 
+    #Write-Host "'$EventstreamName' - Eventstream already exists (ID: $($existing.id))." 
     return @{
         Id      = $existing.id
         Exists = $true

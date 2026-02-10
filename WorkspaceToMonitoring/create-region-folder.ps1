@@ -24,15 +24,15 @@ try {
     $existingFolders = $existingFoldersResponse.value
 }
 catch {
-    Write-Warning "Failed to list existing folders. Proceeding with creation attempts. Error: $_"
-    $existingFolders = @()
+    Write-Error "Failed to list existing folders. Proceeding with creation attempts. Error: $_"
+    exit 1
 }
 
-Write-Host "Processing region: $RegionName"
+#Write-Host "Processing region: $RegionName"
 
 $existingFolder = $existingFolders | Where-Object { $_.displayName -eq $RegionName }
 if ($existingFolder) {
-    Write-Host "Folder '$RegionName' already exists. Skipping." -ForegroundColor Yellow
+    #Write-Host "Folder '$RegionName' already exists. Skipping."
     # Optionally return the ID if needed by caller:
     return $existingFolder.id
     exit

@@ -46,10 +46,10 @@ if ($content.PSObject.Properties.Match('sources')) {
     $sources = $content.sources
     # Explicitly check if the array is empty
     if ($sources.Count -eq 0) {
-        Write-Host "json files does not have any sources in source array. Will use empty template."
+        #Write-Host "json files does not have any sources in source array. Will use empty template."
         $IsEvenstreamEmpty = "yes"
     } else {
-        Write-Host "json files has sources. will add only new source"
+        #Write-Host "json files has sources. will add only new source"
         $IsEvenstreamEmpty = "no"
     }
 }
@@ -164,7 +164,7 @@ $stream = $jsonContent.streams | Where-Object { $_.name -eq "$capacityName-strea
 if ($stream) {
     # Add the new source name to the stream's inputNodes
     $stream.inputNodes += [PSCustomObject]@{ name = $sourceWorkspaceName }
-    Write-Host "Added '$sourceWorkspaceName' to stream '$capacityName-stream'."
+    #Write-Host "Added '$sourceWorkspaceName' to stream '$capacityName-stream'."
 } else {
     Write-Warning "Stream '$capacityName-stream' not found. Source added but not connected."
 }
@@ -173,4 +173,4 @@ if ($stream) {
 #    IMPORTANT: -Depth 10 is required to preserve nested properties
 $jsonContent | ConvertTo-Json -Depth 10 | Set-Content -Path $outputjsonPath -Encoding UTF8
 
-Write-Host "Successfully updated $outputjsonPath"
+#Write-Host "Successfully updated $outputjsonPath"

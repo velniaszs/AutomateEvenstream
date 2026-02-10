@@ -40,7 +40,7 @@ $headers = @{
 try {
     $response = Invoke-WebRequest -Uri $uri -Method Post -Headers $headers -Body $jsonPayload -UseBasicParsing
     $content = $response.Content | ConvertFrom-Json
-    Write-Host "Eventstream '$EventstreamName' created successfully. ID: $($content.id)"
+    #Write-Host "Eventstream '$EventstreamName' created successfully. ID: $($content.id)"
     return $content.id
 }
 catch {

@@ -57,12 +57,12 @@ $headers = @{
     "Content-Type"  = "application/json"
 }
 
-Write-Host "Updating Eventstream..."
-Write-Host "URI: $uri"
+#Write-Host "Updating Eventstream..."
+#Write-Host "URI: $uri"
 
 try {
     $response = Invoke-WebRequest -Uri $uri -Method Post -Headers $headers -Body $jsonPayload -UseBasicParsing
-    Write-Host "Eventstream updated successfully."
+    #Write-Host "Eventstream updated successfully."
     #Write-Output $response
 }
 catch {

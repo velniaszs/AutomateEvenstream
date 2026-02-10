@@ -38,7 +38,7 @@ try {
 
             # 4. Write to File
             Set-Content -Path $OutputFile -Value $decodedContent -Encoding UTF8
-            Write-Host "Eventstream definition saved to: $OutputFile" -ForegroundColor Green
+            #Write-Host "Eventstream definition saved to: $OutputFile"
         }
         else {
             Write-Error "Could not find 'eventstream.json' part in the response definition."
