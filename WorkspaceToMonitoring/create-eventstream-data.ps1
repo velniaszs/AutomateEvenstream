@@ -22,6 +22,8 @@ param(
     [string]$DatabaseId
 )
 
+$sourceWorkspaceName = $sourceWorkspaceName -replace '[^a-zA-Z0-9]', '-'
+
 if (-not (Test-Path $jsonPath)) {
     Write-Error "File not found: $jsonPath"
     exit 1
@@ -60,7 +62,7 @@ if (-not (Test-Path $outputFolder)) {
 }
 
 if ($IsEvenstreamEmpty -eq "yes") {
-    $cleanJsonPath = Join-Path $PSScriptRoot "..\input\clean_evenstream.json"
+    $cleanJsonPath = Join-Path $PSScriptRoot "\input\clean_evenstream.json"
     if (Test-Path $cleanJsonPath) {
         Copy-Item -Path $cleanJsonPath -Destination (Join-Path $outputFolder "$capacityName.json") -Force
     } else {
