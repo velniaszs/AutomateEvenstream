@@ -46,7 +46,7 @@ $uri = "https://api.fabric.microsoft.com/v1/workspaces/$WorkspaceId/folders"
 
 try {
     $response = Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $body -ErrorAction Stop
-    Write-Host "Successfully created folder '$RegionName'. ID: $($response.id)"
+    #Write-Host "Successfully created folder '$RegionName'. ID: $($response.id)"
     return $response.id
 }
 catch {
