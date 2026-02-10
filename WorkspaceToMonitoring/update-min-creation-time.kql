@@ -1,9 +1,0 @@
-// Command to update only the oldest row for each WorkspaceId
-.set-or-replace WorkspaceOutboundAccessProtection <|
-let MinCreation = 
-    WorkspaceOutboundAccessProtection
-    | summarize MinTime = min(CreationTime) by WorkspaceId;
-WorkspaceOutboundAccessProtection
-| join kind=leftouter MinCreation on WorkspaceId
-| extend CreationTime = iff(CreationTime == MinTime, datetime(2026-01-01), CreationTime)
-| project-away MinTime, WorkspaceId1
