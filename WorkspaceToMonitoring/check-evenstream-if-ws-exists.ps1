@@ -9,6 +9,8 @@ param(
     [string]$jsonPath = (Join-Path $PSScriptRoot "eventstream.json")
 )
 
+$sourceWorkspaceName = $sourceWorkspaceName -replace '[^a-zA-Z0-9]', '-'
+
 if (-not (Test-Path $jsonPath)) {
     Write-Error "File not found: $jsonPath"
     exit 1
