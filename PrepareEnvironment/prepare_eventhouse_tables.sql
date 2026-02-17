@@ -6,6 +6,8 @@
 
 .create-merge table MonitoringLastRunTime (LastRunTime:datetime)
 
+.create-merge table AlertLogs (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string) 
+
 .set-or-replace MonitoringLastRunTime <| 
 print LastRunTime = ago(4d)
 
