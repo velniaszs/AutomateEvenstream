@@ -41,7 +41,7 @@ $headers = @{
     "Content-Type"  = "application/json"
     "OData-MaxVersion" = "4.0"
     "OData-Version" = "4.0"
-    "Prefer" = "odata.include-annotations=*"
+    "Prefer" = "odata.include-annotations=OData.Community.Display.V1.FormattedValue"
 }
 
 try {
