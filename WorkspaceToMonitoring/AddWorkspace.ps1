@@ -115,7 +115,7 @@ if (-not $wsExists) {
 }
 
 Write-Host "--- Step 8: Inserting Workspace Outbound Access Protection ---"
-$aopScript = Join-Path $PSScriptRoot "..\PrepareEnvironment\InsertWorkspaceOutboundAccessProtection.ps1"
+$aopScript = Join-Path $PSScriptRoot "\InsertWorkspaceOutboundAccessProtection.ps1"
 & $aopScript -WorkspaceId $AddWorkspaceId -WorkspaceName $AddWorkspaceName -AOPSetting $AOPSetting -KqlAuthToken $kqlToken -QueryUri $dbDetails.QueryServiceUri -DatabaseName $MonEventhouseName
 
 Write-Host "--- All steps completed ---"
