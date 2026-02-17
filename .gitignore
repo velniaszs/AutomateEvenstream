@@ -1,5 +1,6 @@
 get-kql-token.ps1
 get-Fabric-token.ps1
+get-Dataverse-token.ps1
 get-Fabric-token2.ps1
 UpdateEvenstream/Output/
 UpdateEvenstream/input/*

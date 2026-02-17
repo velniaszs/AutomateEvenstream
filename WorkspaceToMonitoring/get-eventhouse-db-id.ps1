@@ -68,4 +68,7 @@ if ($null -eq $targetDb) {
 
 #Write-Host "Found KQL Database: $($targetDb.displayName) (ID: $($targetDb.id))"
 
-return $targetDb.id
+return @{
+    Id = $targetDb.id
+    QueryServiceUri = $targetDb.properties.queryServiceUri
+}

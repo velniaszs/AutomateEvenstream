@@ -23,38 +23,87 @@ datatable(ItemKind:string) [
 | extend ModifiedAt = now()
 
 
-//add missing data
-.append WorkspaceOutboundAccessProtection <|
-WorkspaceLogs
-| where isnotempty(data_workspaceId)
-| summarize arg_max(['time'], data_workspaceName) by data_workspaceId
-| project WorkspaceId = data_workspaceId, WorkSpaceName = data_workspaceName
-| join kind=leftanti (
+
+
+
+
+# CopytoAlerts
+@concat('.append AlertLogs <| 
+    let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+    let startTimeFilter = iff(isnull(lastRunParam) or lastRunParam > ago(1h), ago(1h), lastRunParam);
+    let ak = AllowedItemKind;
+    let wl = WorkspaceLogs
+    | where [''time''] > startTimeFilter
+    | where [''time''] < todatetime("', variables('now'), '")
+    | where type == "Microsoft.Fabric.ItemCreateSucceeded"
+    | extend IngestionTime = ingestion_time()
+    | project WorkspaceName = data_workspaceName, data_workspaceId, wstime = [''time''], data_itemName, data_itemId, data_itemKind, type, IngestionTime;
+    let aop =
     WorkspaceOutboundAccessProtection
-    | distinct WorkspaceId
-) on WorkspaceId
-| extend 
-    Activity = "DisableWorkspaceOutboundAccessProtection",
-    BillingType = 0,
-    ClientIP = "1.1.1.1", 
-    CreationTime = datetime(2026-01-01),
-    Experience = "",
-    Id = new_guid(),
-    ObjectDisplayName = "",
-    ObjectId = "00000000-0000-0000-0000-000000000000",
-    ObjectType = "",
-    Operation = "DisableWorkspaceOutboundAccessProtection",
-    OrganizationId = "9e929790-272d-4977-a2ab-301443c11ece", 
-    RecordType = 20,
-    RefreshEnforcementPolicy = 0,
-    RequestId = tostring(new_guid()),
-    ResultStatus = "Succeeded",
-    UserAgent = "initial entry",
-    UserId = "initial entry",
-    UserKey = "initial entry", 
-    UserType = 0,
-    Workload = "PowerBI"
-| project Activity, BillingType, ClientIP, CreationTime, Experience, Id, ObjectDisplayName, ObjectId, ObjectType, Operation, OrganizationId, RecordType, RefreshEnforcementPolicy, RequestId, ResultStatus, UserAgent, UserId, UserKey, UserType, WorkSpaceName, Workload, WorkspaceId
+    | extend IngestionTime = ingestion_time()
+    | order by WorkspaceId, CreationTime asc
+    | serialize 
+    | extend NextCreationTime = next(CreationTime)
+    | extend NextActivity = next(Activity)
+    | extend NextWorkspaceId = next(WorkspaceId)
+    | extend endTime = iff(WorkspaceId == NextWorkspaceId and Activity != NextActivity, NextCreationTime, datetime(2999-01-01))
+    | where Activity == ''DisableWorkspaceOutboundAccessProtection''
+    | project WorkspaceId, Activity, startTime = CreationTime, endTime, IngestionTime;
+    wl
+    | join kind = inner 
+        aop
+        on  $left.data_workspaceId == $right.WorkspaceId
+    | join kind = leftanti 
+        ak
+        on $left.data_itemKind == $right.ItemKind
+    | where wstime > startTime and wstime <= endTime
+    | project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId
+    | extend AlertStatus = ''Initial''
+    // 3. Filter out records that already exist in the destination table
+    | join kind=leftanti (
+        AlertLogs 
+    ) on WorkspaceId, data_itemId')
 
 
-WorkspaceOutboundAccessProtection
+
+#List alerts workspaces
+AlertLogs
+| where AlertStatus != 'EmailSent'
+| extend ItemDetail = strcat("Name: ", data_itemName, " (", data_itemKind, ")")
+| summarize 
+    AggregatedItems = strcat_array(make_list(ItemDetail), ", "),
+    ItemIds = strcat_array(make_list(data_itemId),", ")
+    by WorkspaceName, WorkspaceId
+
+
+# update status 
+@concat('.set-or-replace AlertLogs <| 
+let targetWorkspaceId = toguid("', item().WorkspaceId,'");
+let targetItemIdsString = "', item().ItemIds,'";
+let targetItemIds = split(replace_string(targetItemIdsString, " ", ""), ",");
+AlertLogs
+| extend AlertStatus = iff(
+    WorkspaceId == targetWorkspaceId and data_itemId in (targetItemIds), 
+    "EmailSent", 
+    AlertStatus
+)')
+
+# update monitoring config time 
+@concat('.set-or-replace MonitoringLastRunTime <| print LastRunTime = todatetime("', variables('now'), '")')
+
+# set email list 
+@join(
+    xpath(
+        xml(
+            json(
+                concat(
+                    '{"Root": {"Item": ', 
+                    string(activity('Web1').output.accessDetails), 
+                    '}}'
+                )
+            )
+        ), 
+        '/Root/Item[principal/type="User" and workspaceAccessDetails/workspaceRole="Admin"]/principal/userDetails/userPrincipalName/text()'
+    ), 
+    '; '
+)

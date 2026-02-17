@@ -6,10 +6,10 @@ param(
     [string]$EventhouseName = "MonitoringEventhouse", #Name of the Eventhouse
 
     [Parameter(Mandatory = $false)]
-    [string]$rmWorkspaceName = "ab_test2", #Name of the workspace to be removed
+    [string]$rmWorkspaceName = "ab_demo_3", #Name of the workspace to be removed
 
     [Parameter(Mandatory = $false)]
-    [string]$rmWorkspaceId = "af2b1ae0-5660-454c-9952-b01cffde1d2f", #WorkspaceId of the workspace to be removed
+    [string]$rmWorkspaceId = "7d8301d0-d8af-43b8-9c35-2397c92952a8", #WorkspaceId of the workspace to be removed
 
     [Parameter(Mandatory = $false)]
     [string]$capacityName = "sksdemofabric01" #Capacity Name of the workspace to be added
