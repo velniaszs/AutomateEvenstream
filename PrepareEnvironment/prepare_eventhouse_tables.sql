@@ -109,3 +109,39 @@ AlertLogs
     ), 
     '; '
 )
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------TESTING KQL QUERIES-------------------------------------------------
+
+AlertLogs
+| where AlertStatus != 'EmailSent'
+| extend ItemDetail = strcat("Name: ", data_itemName, " (", data_itemKind, ")")
+| summarize 
+    AggregatedItems = strcat_array(make_list(ItemDetail), ", "),
+    ItemIds = strcat_array(make_list(data_itemId),", ")
+    by WorkspaceName, WorkspaceId
+
+WorkspaceEmail | summarize arg_max(ingestion_time(), *) by workspaceId
+
+let latestWorkspaceEmail = WorkspaceEmail | summarize arg_max(ingestion_time(), *) by workspaceId;
+AlertLogs
+| where AlertStatus != 'EmailSent'
+| extend ItemDetail = strcat("Name: ", data_itemName, " (", data_itemKind, ")")
+| summarize 
+    AggregatedItems = strcat_array(make_list(ItemDetail), ", "),
+    ItemIds = strcat_array(make_list(data_itemId),", ")
+    by WorkspaceName, WorkspaceId
+| join kind=leftouter (
+    latestWorkspaceEmail
+) on $left.WorkspaceId == $right.workspaceId
+
+----------------------------------------------------------------------------------
