@@ -130,10 +130,10 @@ AlertLogs
     ItemIds = strcat_array(make_list(data_itemId),", ")
     by WorkspaceName, WorkspaceId
 
-WorkspaceEmail | summarize arg_max(ingestion_time(), *) by workspaceId
+workspace_owner | summarize arg_max(ingestion_time(), *) by workspaceId
 
 // Version 1: Workspaces with Valid Emails (Ready to Send)
-let latestWorkspaceEmail = WorkspaceEmail 
+let latestWorkspaceEmail = workspace_owner 
     | summarize arg_max(ingestion_time(), *) by workspaceId
     | where isnotempty(trim(" ", PrimaryEmail)) or isnotempty(trim(" ", SecondaryEmail));
 AlertLogs
@@ -149,7 +149,7 @@ AlertLogs
 
 
 // Version 2: Workspaces Missing Emails (Need Dataverse Lookup)
-let latestWorkspaceEmail = WorkspaceEmail | summarize arg_max(ingestion_time(), *) by workspaceId;
+let latestWorkspaceEmail = workspace_owner | summarize arg_max(ingestion_time(), *) by workspaceId;
 AlertLogs
 | where AlertStatus != 'EmailSent'
 | extend ItemDetail = strcat("Name: ", data_itemName, " (", data_itemKind, ")")
@@ -161,5 +161,17 @@ AlertLogs
     latestWorkspaceEmail
 ) on $left.WorkspaceId == $right.workspaceId
 | where (isnull(PrimaryEmail) or isempty(trim(" ", PrimaryEmail))) and (isnull(SecondaryEmail) or isempty(trim(" ", SecondaryEmail)))
+
+
+// Version 3: Update AlertStatus to 'NoEmail' for Missing Emails (Version 2 condition)
+.set-or-append AlertLogs <|
+    let latestWorkspaceEmail = workspace_owner | summarize arg_max(ingestion_time(), *) by workspaceId;
+    AlertLogs
+    | where AlertStatus != 'EmailSent' and AlertStatus != 'NoEmail'
+    | join kind=leftouter (
+        latestWorkspaceEmail
+    ) on $left.WorkspaceId == $right.workspaceId
+    | where (isnull(PrimaryEmail) or isempty(trim(" ", PrimaryEmail))) and (isnull(SecondaryEmail) or isempty(trim(" ", SecondaryEmail)))
+    | project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus = 'NoEmail'
 
 ----------------------------------------------------------------------------------
