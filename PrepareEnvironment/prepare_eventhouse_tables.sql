@@ -132,6 +132,23 @@ AlertLogs
 
 WorkspaceEmail | summarize arg_max(ingestion_time(), *) by workspaceId
 
+// Version 1: Workspaces with Valid Emails (Ready to Send)
+let latestWorkspaceEmail = WorkspaceEmail 
+    | summarize arg_max(ingestion_time(), *) by workspaceId
+    | where isnotempty(trim(" ", PrimaryEmail)) or isnotempty(trim(" ", SecondaryEmail));
+AlertLogs
+| where AlertStatus != 'EmailSent'
+| extend ItemDetail = strcat("Name: ", data_itemName, " (", data_itemKind, ")")
+| summarize 
+    AggregatedItems = strcat_array(make_list(ItemDetail), ", "),
+    ItemIds = strcat_array(make_list(data_itemId),", ")
+    by WorkspaceName, WorkspaceId
+| join kind=inner (
+    latestWorkspaceEmail
+) on $left.WorkspaceId == $right.workspaceId
+
+
+// Version 2: Workspaces Missing Emails (Need Dataverse Lookup)
 let latestWorkspaceEmail = WorkspaceEmail | summarize arg_max(ingestion_time(), *) by workspaceId;
 AlertLogs
 | where AlertStatus != 'EmailSent'
@@ -143,5 +160,6 @@ AlertLogs
 | join kind=leftouter (
     latestWorkspaceEmail
 ) on $left.WorkspaceId == $right.workspaceId
+| where (isnull(PrimaryEmail) or isempty(trim(" ", PrimaryEmail))) and (isnull(SecondaryEmail) or isempty(trim(" ", SecondaryEmail)))
 
 ----------------------------------------------------------------------------------
