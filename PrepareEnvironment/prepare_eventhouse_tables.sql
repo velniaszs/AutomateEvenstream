@@ -186,23 +186,22 @@ WorkspaceLogs
 
 ----------------------------------------------------------------------------------
 
-.append AlertLogs <| 
+@concat('.append AlertLogs <| 
 let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
 let startTimeFilter = iff(isnull(lastRunParam) or lastRunParam > ago(1h), ago(1h), lastRunParam);
 let ak = AllowedItemKind;
 let aop = WorkspaceOutboundAccessProtection
 | extend ingestionTime = ingestion_time()
 | summarize arg_max(ingestionTime, *) by WorkspaceId
-| where CreationTime > ago(2h)
-| where CreationTime < now()
-| where WorkspaceId =='dfe401d5-41e3-4ad9-8e82-a3886d070f3f' //to remove
-| where Activity == 'DisableWorkspaceOutboundAccessProtection';
+| where CreationTime > startTimeFilter
+| where CreationTime < todatetime("', variables('now'), '")
+| where Activity == "DisableWorkspaceOutboundAccessProtection";
 let wl = WorkspaceLogs
 | where type in ("Microsoft.Fabric.ItemCreateSucceeded", "Microsoft.Fabric.ItemDeleteSucceeded")
 | summarize 
     Created = countif(type == "Microsoft.Fabric.ItemCreateSucceeded"),
     Deleted = countif(type == "Microsoft.Fabric.ItemDeleteSucceeded"),
-    wstime = max(['time'])
+    wstime = max([''time''])
     by data_workspaceId, data_workspaceName, data_itemId, data_itemName, data_itemKind
 | where Created > 0 and Deleted == 0;
 wl
@@ -216,4 +215,5 @@ wl
     AlertLogs 
 ) on WorkspaceId, data_itemId
 | project WorkspaceName = data_workspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId
-| extend AlertStatus = 'Initial'
+| extend AlertStatus = "Initial2"  
+')
