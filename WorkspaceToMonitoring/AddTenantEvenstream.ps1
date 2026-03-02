@@ -15,10 +15,7 @@ param(
     [string]$AddRegionName = "Eventstream", #Region Name of the workspace capacity to be added
 
     [Parameter(Mandatory = $false)]
-    [string]$EventstreamName = "TenantLevelWorkspaceEvents", #Capacity Name of the workspace to be added
-
-    [Parameter(Mandatory = $false)]
-    [bool]$AopEnabled = $false #Enabled or Disabled AOP setting for added workspace
+    [string]$EventstreamName = "TenantLevelWorkspaceEvents" #Capacity Name of the workspace to be added
 )
 
 $ErrorActionPreference = "Stop"
@@ -30,8 +27,6 @@ $eventstreamId = $null
 $dbDetails = $null
 $folderId = $null
 $eventstreamCheck = $null
-
-$AOPSetting = if ($AopEnabled) { "EnableWorkspaceOutboundAccessProtection" } else { "DisableWorkspaceOutboundAccessProtection" }
 
 Write-Host "--- Step 0: Getting Fabric Token ---"
 $fabricTokenScript = Join-Path $PSScriptRoot "..\get-Fabric-token-user.ps1"
