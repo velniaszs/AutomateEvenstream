@@ -1,0 +1,32 @@
+.append AOPAlertLogs <|
+let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);
+let aop = 
+WorkspaceOutboundAccessProtection
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < todatetime(now())//var now
+| project WorkspaceId, Activity, CreationTime, UserId;
+let laop = 
+WorkspaceOutboundAccessProtection
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < todatetime(now())//var now
+| summarize arg_max(ingestion_time(), Activity) by WorkspaceId
+| project WorkspaceId, LastActivity = Activity;
+let daop =
+DataverseAOP
+| project daopWorkspaceId = WorkspaceId, daopActivity =  Activity;
+aop
+| join kind=inner (
+    daop 
+) on $left.WorkspaceId == $right.daopWorkspaceId
+| join kind=inner (
+    laop
+) on WorkspaceId
+| where Activity !=daopActivity
+| summarize arg_max(CreationTime, Activity, daopActivity, LastActivity), UserId = strcat_array(make_set(UserId), ", ") by WorkspaceId
+| project WorkspaceId, ToChangeAOP = iif(LastActivity==Activity,true,false), AOP = Activity, AOPMustBe = daopActivity, CreationTime, UserId
+| extend AlertStatus = "Initial"
+
+
+
+.create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string) 

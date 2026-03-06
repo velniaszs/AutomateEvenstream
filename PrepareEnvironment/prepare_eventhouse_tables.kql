@@ -1,0 +1,70 @@
+.create-merge table WorkspaceOutboundAccessProtection (Activity:string, BillingType:long, ClientIP:string, CreationTime:datetime, Experience:string, Id:guid, ObjectDisplayName:string, ObjectId:string, ObjectType:string, Operation:string, OrganizationId:string, RecordType:long, RefreshEnforcementPolicy:long, RequestId:string, ResultStatus:string, UserAgent:string, UserId:string, UserKey:string, UserType:long, WorkSpaceName:string, Workload:string, WorkspaceId:guid) 
+
+.create-merge table WorkspaceOutboundAccessProtection_Staging (Activity:string, BillingType:long, ClientIP:string, CreationTime:datetime, Experience:string, Id:guid, ObjectDisplayName:string, ObjectId:string, ObjectType:string, Operation:string, OrganizationId:string, RecordType:long, RefreshEnforcementPolicy:long, RequestId:string, ResultStatus:string, UserAgent:string, UserId:string, UserKey:string, UserType:long, WorkSpaceName:string, Workload:string, WorkspaceId:guid) 
+
+.create-merge table AllowedItemKind (ItemKind:string, ModifiedAt:datetime)
+
+.create-merge table MonitoringLastRunTime (LastRunTime:datetime)
+
+.create-merge table AlertLogs (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string) 
+
+.set-or-replace MonitoringLastRunTime <| 
+print LastRunTime = ago(4d)
+
+.set-or-replace AllowedItemKind <|
+datatable(ItemKind:string) [
+    "VariableLibrary",
+    "KQLDashboard",
+    "Eventstream",
+    "cosmosdb",
+    "azuredb",
+    "MirroredAzureDatabricksCatalog",
+    "SqlAnalyticsEndpoint",
+    "MountedDataFactory"
+]
+| extend ModifiedAt = now()
+
+.create-merge table DeleteLastRunTime (LastRunTime:datetime)
+
+.set-or-replace DeleteLastRunTime <| 
+print LastRunTime = ago(4d)
+
+.create-merge table DataverseAOP (WorkSpaceName:string, WorkspaceId:guid, Activity:string) 
+
+.create-merge table DataverseAOP_Staging (WorkSpaceName:string, WorkspaceId:guid, Activity:string) 
+
+
+.create-merge table DeleteException (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string, ErrorCode:string, Description:string)
+
+.create-merge table WorkspaceLogs (type:string, datacontenttype:string, id:guid, ['time']:datetime, dataschemaversion:real, subject:string, source:guid, specversion:real, data_workspaceId:guid, data_workspaceName:string, data_itemName:string, data_itemId:guid, data_itemKind:string, data_executingPrincipalId:guid, data_executingPrincipalType:string) 
+
+.create-or-alter table WorkspaceLogs ingestion json mapping 'WorkspaceLogs_mapping'
+```
+[
+    {"column":"type", "path":"$.type"},
+    {"column":"datacontenttype", "path":"$.datacontenttype"},
+    {"column":"id", "path":"$.id"},
+    {"column":"time", "path":"$.time"},
+    {"column":"dataschemaversion", "path":"$.dataschemaversion"},
+    {"column":"subject", "path":"$.subject"},
+    {"column":"source", "path":"$.source"},
+    {"column":"specversion", "path":"$.specversion"},
+    {"column":"data_workspaceId", "path":"$.data.workspaceId"},
+    {"column":"data_workspaceName", "path":"$.data.workspaceName"},
+    {"column":"data_itemName", "path":"$.data.itemName"},
+    {"column":"data_itemId", "path":"$.data.itemId"},
+    {"column":"data_itemKind", "path":"$.data.itemKind"},
+    {"column":"data_executingPrincipalId", "path":"$.data.executingPrincipalId"},
+    {"column":"data_executingPrincipalType", "path":"$.data.executingPrincipalType"}
+]
+```
+.create-merge table AllowedAOPItemKind (ItemKind:string, ModifiedAt:datetime)
+
+.set-or-replace AllowedAOPItemKind <|
+datatable(ItemKind:string) [
+    "VariableLibrary",
+    "SqlAnalyticsEndpoint"
+]
+| extend ModifiedAt = now()
+
+.create-merge table CapacityAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string) 

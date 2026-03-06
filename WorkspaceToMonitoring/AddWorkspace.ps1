@@ -6,10 +6,10 @@ param(
     [string]$MonEventhouseName = "MonitoringEventhouse", #Name of the Monitoring Solution Eventhouse
 
     [Parameter(Mandatory = $false)]
-    [string]$AddWorkspaceName = "ab_demo_2", #Name of the workspace to be added
+    [string]$AddWorkspaceName = "ab_demo_4", #Name of the workspace to be added
 
     [Parameter(Mandatory = $false)]
-    [string]$AddWorkspaceId = "6660419a-a6f9-41ea-bd0f-597d1f3c519b", #WorkspaceId of the workspace to be added
+    [string]$AddWorkspaceId = "b7c510d6-c7fb-4311-a627-8c49f3f28933", #WorkspaceId of the workspace to be added
 
     [Parameter(Mandatory = $false)]
     [string]$AddRegionName = "West US", #Region Name of the workspace capacity to be added
@@ -114,8 +114,14 @@ if (-not $wsExists) {
     Write-Host "--- Source workspace already exists in definition. Skipping Step 6 and 7. ---"
 }
 
+#Write-Host "--- Step 8: Inserting Workspace Outbound Access Protection ---"
+#$aopScript = Join-Path $PSScriptRoot "\InsertWorkspaceOutboundAccessProtection.ps1"
+#& $aopScript -WorkspaceId $AddWorkspaceId -WorkspaceName $AddWorkspaceName -AOPSetting $AOPSetting -KqlAuthToken $kqlToken -QueryUri $dbDetails.QueryServiceUri -DatabaseName $MonEventhouseName
+
+#to remove...
 Write-Host "--- Step 8: Inserting Workspace Outbound Access Protection ---"
-$aopScript = Join-Path $PSScriptRoot "\InsertWorkspaceOutboundAccessProtection.ps1"
+$aopScript = Join-Path $PSScriptRoot "\InsertDataverseAOP.ps1"
 & $aopScript -WorkspaceId $AddWorkspaceId -WorkspaceName $AddWorkspaceName -AOPSetting $AOPSetting -KqlAuthToken $kqlToken -QueryUri $dbDetails.QueryServiceUri -DatabaseName $MonEventhouseName
+
 
 Write-Host "--- All steps completed ---"
