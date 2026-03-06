@@ -119,9 +119,9 @@ if (-not $wsExists) {
 #& $aopScript -WorkspaceId $AddWorkspaceId -WorkspaceName $AddWorkspaceName -AOPSetting $AOPSetting -KqlAuthToken $kqlToken -QueryUri $dbDetails.QueryServiceUri -DatabaseName $MonEventhouseName
 
 #to remove...
-Write-Host "--- Step 8: Inserting Workspace Outbound Access Protection ---"
-$aopScript = Join-Path $PSScriptRoot "\InsertDataverseAOP.ps1"
-& $aopScript -WorkspaceId $AddWorkspaceId -WorkspaceName $AddWorkspaceName -AOPSetting $AOPSetting -KqlAuthToken $kqlToken -QueryUri $dbDetails.QueryServiceUri -DatabaseName $MonEventhouseName
+#Write-Host "--- Step 8: Inserting Workspace Outbound Access Protection ---"
+#$aopScript = Join-Path $PSScriptRoot "\InsertDataverseAOP.ps1"
+#& $aopScript -WorkspaceId $AddWorkspaceId -WorkspaceName $AddWorkspaceName -AOPSetting $AOPSetting -KqlAuthToken $kqlToken -QueryUri $dbDetails.QueryServiceUri -DatabaseName $MonEventhouseName
 
 
 Write-Host "--- All steps completed ---"
