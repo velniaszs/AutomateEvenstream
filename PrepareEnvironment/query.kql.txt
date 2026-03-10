@@ -56,3 +56,12 @@ workspace_owner
     guid("00000000-0000-0000-0000-000000000002"),
     guid("00000000-0000-0000-0000-000000000003")
 )
+
+
+
+@concat('AOPAlertLogs
+| where ingestion_time() > todatetime("', variables('now'), '")
+| extend IngestionTime = ingestion_time()
+| summarize arg_max(IngestionTime, UserId, AlertStatus, CreationTime) by WorkspaceId
+| where AlertStatus == "Initial"
+| project WorkspaceId, CreationTime, UserId')
