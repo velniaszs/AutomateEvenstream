@@ -77,3 +77,48 @@ AOPAlertLogs
 | where AlertStatus == "Initial"
 | project WorkspaceId, ToChangeAOP, AOP, AOPMustBe, CreationTime, UserId, AlertStatus = "EmailSent"
 ')
+
+
+@concat('let latestWorkspaceEmail = 
+    workspace_owner
+    | where isnotempty(trim(" ", PrimaryEmail)) or isnotempty(trim(" ". SecondaryEmail))
+    | extend emails = strcat(PrimaryEmail,";",SecondaryEmail)
+    | summarize arg_max(ingestion_time(), emails) by workspaceId 
+    | project emails, workspaceId;
+AlertLogs
+| where ingestion_time() > todatetime("', variables('now'),'")
+| extend IngestionTime = ingestion_time()
+| summarize arg_max(IngestionTime,*) by WorkspaceId, data_itemId
+| where AlertStatus == "Initial"
+| extend ItemDetail = strcat("Name: ", data_itemNAme, " (", data_itemKind, ")")
+| summarize AggregatedItems = strcat_array(make_list(ItemDetail), ", "),
+    ItemIds = strcat_array(make_list(data_itemId),", ")
+    by WorkspaceName, WorkspaceId
+| join kind = inner (
+    latestWorkspaceEmail
+) on $left.WorkspaceId = $right.workspaceId
+| project WorkspaceName, WorkspaceId, AggregatedItems, ItemIds, emails')
+
+
+
+
+
+
+--AOP no email
+
+@concat('.append AOPAlertLogs <|
+let latestWorkspaceEmail = 
+workspace_owner
+| where isnotempty( trim(" ", PrimaryEmail)) or isnotempty( trim(" ", SecondaryEmail))
+| extend emails = strcat(PrimaryEmail,";",SecondaryEmail)
+| summarize arg_max(ingestion_time(), emails) by workspaceId
+| project emails, workspaceId;
+AOPAlertLogs
+| where ingestion_time() > todatetime("', variables('now'), '")
+| extend IngestionTime = ingestion_time()
+| summarize arg_max(IngestionTime,*) by WorkspaceId
+| where AlertStatus == "Initial"
+| join kind=leftanti (
+    latestWorkspaceEmail
+) on $left.WorkspaceId == $right.workspaceId
+| project WorkspaceId, ToChangeAOP, AOP, AOPMustBe, CreationTime, UserId, AlertStatus = "NoEmail"')
