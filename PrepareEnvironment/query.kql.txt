@@ -41,3 +41,10 @@ let validOwners = workspace_owner
 | project workspaceId;
 AlertLogs
 | join kind=leftanti validOwners on $left.WorkspaceId == $right.workspaceId
+
+
+.set-or-append workspace_owner <|
+union
+(print workspaceId = guid("00000000-0000-0000-0000-000000000001"), PrimaryEmail = tostring(dynamic(null)), SecondaryEmail = "secondary@dummy.com"),
+(print workspaceId = guid("00000000-0000-0000-0000-000000000002"), PrimaryEmail = "primary@dummy.com",       SecondaryEmail = tostring(dynamic(null))),
+(print workspaceId = guid("00000000-0000-0000-0000-000000000003"), PrimaryEmail = tostring(dynamic(null)), SecondaryEmail = tostring(dynamic(null)))
