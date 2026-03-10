@@ -1,0 +1,502 @@
+{
+    "name": "Detect_And_Alert",
+    "objectId": "f585b231-bfe2-4e29-a068-84babb06b12d",
+    "properties": {
+        "activities": [
+            {
+                "name": "UpdateMonitoringConfigTime",
+                "type": "KustoQueryLanguage",
+                "dependsOn": [
+                    {
+                        "activity": "ForEach CapacityChange",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "command": {
+                        "value": "@concat('.set-or-replace MonitoringLastRunTime <| print LastRunTime = todatetime(\"', variables('now'), '\")')",
+                        "type": "Expression"
+                    },
+                    "commandTimeout": "00:20:00"
+                },
+                "linkedService": {
+                    "name": "MonitoringEventhouse",
+                    "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                    "properties": {
+                        "annotations": [],
+                        "type": "KustoDatabase",
+                        "typeProperties": {
+                            "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                            "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                            "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "Set now var",
+                "type": "SetVariable",
+                "dependsOn": [],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "variableName": "now",
+                    "value": {
+                        "value": "@utcNow()",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "AlertsByDataverseAOP",
+                "description": "Load AlertLogs, if user create items, for workspace that has dataverse setting as AOP off and create items that are not allowed for such workspace.",
+                "type": "KustoQueryLanguage",
+                "dependsOn": [
+                    {
+                        "activity": "Set now var",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "command": {
+                        "value": "@concat('.append AlertLogs <|    \n    let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));\n    let startTimeFilter = iff(isnull(lastRunParam), ago(100d), lastRunParam);\n    let ak = AllowedItemKind;\n    let wl = WorkspaceLogs\n    | where ingestion_time() > startTimeFilter\n    | where ingestion_time() < todatetime(\"', variables('now'),'\")\n    | extend IngestionTime = ingestion_time()\n    | where type == \"Microsoft.Fabric.ItemCreateSucceeded\"\n    | project WorkspaceName = data_workspaceName, data_workspaceId, wstime = [\"time\"], data_itemName, data_itemId, data_itemKind, type, IngestionTime;\n    let aop =\n    DataverseAOP\n    | extend IngestionTime = ingestion_time()\n    | summarize arg_max(IngestionTime, *) by WorkspaceId\n    | where Activity == \"DisableWorkspaceOutboundAccessProtection\"\n    | project WorkspaceId, Activity;\n    wl\n    | join kind = inner \n        aop\n        on  $left.data_workspaceId == $right.WorkspaceId\n    | join kind = leftanti \n        ak\n        on $left.data_itemKind == $right.ItemKind\n    | project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId\n    | extend AlertStatus = \"Initial\"\n    // 3. Filter out records that already exist in the destination table\n    | join kind=leftanti (\n        AlertLogs \n    ) on WorkspaceId, data_itemId')",
+                        "type": "Expression"
+                    },
+                    "commandTimeout": "00:20:00"
+                },
+                "linkedService": {
+                    "name": "MonitoringEventhouse",
+                    "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                    "properties": {
+                        "annotations": [],
+                        "type": "KustoDatabase",
+                        "typeProperties": {
+                            "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                            "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                            "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "ForEach1",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "ListAlertWorkspaces",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('ListAlertWorkspaces').output.value",
+                        "type": "Expression"
+                    },
+                    "isSequential": true,
+                    "activities": [
+                        {
+                            "name": "Update Status",
+                            "type": "KustoQueryLanguage",
+                            "dependsOn": [
+                                {
+                                    "activity": "Office365Email2",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "command": {
+                                    "value": "@concat('.set-or-append AlertLogs <| \nlet targetWorkspaceId = toguid(\"', item().WorkspaceId,'\");\nlet targetItemIdsString = \"', item().ItemIds,'\";\nlet targetItemIds = split(replace_string(targetItemIdsString, \" \", \"\"), \",\");\nAlertLogs\n| extend IngestionTime = ingestion_time()\n| summarize arg_max(IngestionTime, *) by WorkspaceId, data_itemId\n| where WorkspaceId == targetWorkspaceId and data_itemId in (targetItemIds)\n| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus = \"EmailSent\"\n')",
+                                    "type": "Expression"
+                                },
+                                "commandTimeout": "00:20:00"
+                            },
+                            "linkedService": {
+                                "name": "MonitoringEventhouse",
+                                "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                "properties": {
+                                    "annotations": [],
+                                    "type": "KustoDatabase",
+                                    "typeProperties": {
+                                        "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                                        "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                                        "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Office365Email2",
+                            "type": "Office365Email",
+                            "state": "Inactive",
+                            "onInactiveMarkAs": "Succeeded",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "to": {
+                                    "value": "@join(\n    xpath(\n        xml(\n            json(\n                concat(\n                    '{\"Root\": {\"Item\": ', \n                    string(activity('Web1').output.accessDetails), \n                    '}}'\n                )\n            )\n        ), \n        '/Root/Item[principal/type=\"User\" and workspaceAccessDetails/workspaceRole=\"Admin\"]/principal/userDetails/userPrincipalName/text()'\n    ), \n    '; '\n)",
+                                    "type": "Expression"
+                                },
+                                "subject": "test",
+                                "body": "<p>test test . here is a test :)</p>\n<p><br></p>"
+                            },
+                            "externalReferences": {
+                                "connection": "371bdff8-1e2c-4a6a-9836-4494786f0b3e"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "ListAlertWorkspaces",
+                "type": "Lookup",
+                "dependsOn": [
+                    {
+                        "activity": "AlertsWhenAOPShouldBeEnabled",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "KustoDatabaseSource",
+                        "query": {
+                            "value": "@concat('AlertLogs\n| where ingestion_time() > todatetime(\"', variables('now'), '\")\n| extend IngestionTime = ingestion_time()\n| summarize arg_max(IngestionTime, *) by WorkspaceId, data_itemId\n| where AlertStatus == \"Initial\"\n| extend ItemDetail = strcat(\"Name: \", data_itemName, \" (\", data_itemKind, \")\")\n| summarize \n    AggregatedItems = strcat_array(make_list(ItemDetail), \", \"),\n    ItemIds = strcat_array(make_list(data_itemId),\", \")\n    by WorkspaceName, WorkspaceId')",
+                            "type": "Expression"
+                        },
+                        "queryTimeout": "01:00:00",
+                        "noTruncation": true
+                    },
+                    "firstRowOnly": false,
+                    "datasetSettings": {
+                        "annotations": [],
+                        "linkedService": {
+                            "name": "MonitoringEventhouse",
+                            "properties": {
+                                "annotations": [],
+                                "type": "KustoDatabase",
+                                "typeProperties": {
+                                    "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                                    "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                                    "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                                }
+                            }
+                        },
+                        "type": "KustoDatabaseTable",
+                        "schema": []
+                    }
+                }
+            },
+            {
+                "name": "AlertsIfDisableAOP",
+                "description": "Load AlertLogs, if user disable manually AOP Workspace setting and create items. This logic will delete items even if AOP was disabled for a very short amount of time",
+                "type": "KustoQueryLanguage",
+                "dependsOn": [
+                    {
+                        "activity": "AlertsByDataverseAOP",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "command": {
+                        "value": "@concat('.append AlertLogs <| \nlet lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));\nlet startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);\nlet ak = AllowedItemKind;\nlet wl = WorkspaceLogs\n| where ingestion_time() > startTimeFilter\n| where ingestion_time() < todatetime(\"', variables('now'),'\")\n| extend IngestionTime = ingestion_time()\n| where type == \"Microsoft.Fabric.ItemCreateSucceeded\"\n| project WorkspaceName = data_workspaceName, data_workspaceId, wstime = [\"time\"], data_itemName, data_itemId, data_itemKind, type, IngestionTime;\nlet aop =\nWorkspaceOutboundAccessProtection\n| extend IngestionTime = ingestion_time()\n| order by WorkspaceId, CreationTime asc\n| serialize \n| extend NextCreationTime = next(CreationTime)\n| extend NextActivity = next(Activity)\n| extend NextWorkspaceId = next(WorkspaceId)\n| extend endTime = iff(WorkspaceId == NextWorkspaceId and Activity != NextActivity, NextCreationTime, datetime(2999-01-01))\n| where Activity == \"DisableWorkspaceOutboundAccessProtection\"\n| project WorkspaceId, startTime = CreationTime, endTime;\nwl\n| join kind = inner \n    aop\n    on  $left.data_workspaceId == $right.WorkspaceId\n| join kind = leftanti \n    ak\n    on $left.data_itemKind == $right.ItemKind\n| where wstime > startTime and wstime <= endTime\n| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId\n| extend AlertStatus = \"Initial\"\n// 3. Filter out records that already exist in the destination table\n| join kind=leftanti (\n    AlertLogs \n) on WorkspaceId, data_itemId')",
+                        "type": "Expression"
+                    },
+                    "commandTimeout": "00:20:00"
+                },
+                "linkedService": {
+                    "name": "MonitoringEventhouse",
+                    "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                    "properties": {
+                        "annotations": [],
+                        "type": "KustoDatabase",
+                        "typeProperties": {
+                            "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                            "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                            "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "AlertsWhenAOPShouldBeEnabled",
+                "description": "Load AlertLogs table, if Dataverse AOP is AOP enabled and Fabric logs show it is Disabled - > then we need to log for more item kinds",
+                "type": "KustoQueryLanguage",
+                "dependsOn": [
+                    {
+                        "activity": "AlertsIfDisableAOP",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "command": {
+                        "value": "@concat('.append AlertLogs <| \nlet lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));\nlet startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);\nlet ak = AllowedAOPItemKind;\nlet wl = WorkspaceLogs\n| where ingestion_time() > startTimeFilter\n| where ingestion_time() < todatetime(\"', variables('now'),'\")\n| extend IngestionTime = ingestion_time()\n| where type == \"Microsoft.Fabric.ItemCreateSucceeded\"\n| project WorkspaceName = data_workspaceName, data_workspaceId, wstime = [\"time\"], data_itemName, data_itemId, data_itemKind, type, IngestionTime;\nlet aop =\nWorkspaceOutboundAccessProtection\n| summarize arg_max(CreationTime, Activity) by WorkspaceId\n| where Activity == \"DisableWorkspaceOutboundAccessProtection\"\n| project WorkspaceId;\nlet daop =\nDataverseAOP\n| where Activity == \"EnableWorkspaceOutboundAccessProtection\"\n| project WorkspaceId;\nwl\n| join kind = inner \n    aop\n    on  $left.data_workspaceId == $right.WorkspaceId\n| join kind = inner \n    daop\n    on  $left.data_workspaceId == $right.WorkspaceId\n| join kind = leftanti \n    ak\n    on $left.data_itemKind == $right.ItemKind\n| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId\n| extend AlertStatus = \"Initial\"\n// 3. Filter out records that already exist in the destination table\n| join kind=leftanti (\n    AlertLogs \n) on WorkspaceId, data_itemId')",
+                        "type": "Expression"
+                    },
+                    "commandTimeout": "00:20:00"
+                },
+                "linkedService": {
+                    "name": "MonitoringEventhouse",
+                    "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                    "properties": {
+                        "annotations": [],
+                        "type": "KustoDatabase",
+                        "typeProperties": {
+                            "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                            "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                            "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "AOPChangeAlertLog",
+                "description": "Add to AOPAlertLogs that capacity was changed and if it needs to be switched back to original setting",
+                "type": "KustoQueryLanguage",
+                "dependsOn": [
+                    {
+                        "activity": "ForEach1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "command": {
+                        "value": "@concat('.append AOPAlertLogs <|\nlet lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));\nlet startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);\nlet aop = \nWorkspaceOutboundAccessProtection\n| where ingestion_time() > startTimeFilter\n| where ingestion_time() < todatetime(\"', variables('now'),'\")\n| project WorkspaceId, Activity, CreationTime, UserId;\nlet laop = \nWorkspaceOutboundAccessProtection\n| where ingestion_time() > startTimeFilter\n| where ingestion_time() < todatetime(\"', variables('now'),'\")\n| summarize arg_max(CreationTime, Activity) by WorkspaceId\n| project WorkspaceId, LastActivity = Activity;\nlet daop =\nDataverseAOP\n| project daopWorkspaceId = WorkspaceId, daopActivity =  Activity;\naop\n| join kind=inner (\n    daop \n) on $left.WorkspaceId == $right.daopWorkspaceId\n| join kind=inner (\n    laop\n) on WorkspaceId\n| where Activity !=daopActivity\n| summarize arg_max(CreationTime, Activity, daopActivity, LastActivity), UserId = strcat_array(make_set(UserId), \", \") by WorkspaceId\n| project WorkspaceId, ToChangeAOP = iif(LastActivity==daopActivity,false,true), AOP = LastActivity, AOPMustBe = daopActivity, CreationTime, UserId\n| extend AlertStatus = \"Initial\"')",
+                        "type": "Expression"
+                    },
+                    "commandTimeout": "00:20:00"
+                },
+                "linkedService": {
+                    "name": "MonitoringEventhouse",
+                    "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                    "properties": {
+                        "annotations": [],
+                        "type": "KustoDatabase",
+                        "typeProperties": {
+                            "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                            "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                            "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "ForEach CapacityChange",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "ListAlertChangedAOPWorkspaces",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('ListAlertChangedAOPWorkspaces').output.value",
+                        "type": "Expression"
+                    },
+                    "isSequential": true,
+                    "activities": [
+                        {
+                            "name": "Update Status_copy1",
+                            "type": "KustoQueryLanguage",
+                            "dependsOn": [
+                                {
+                                    "activity": "Office365Email2_copy1",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "command": {
+                                    "value": "@concat('.append AOPAlertLogs <|\nlet targetWorkspaceId = toguid(\"', item().WorkspaceId,'\");\nAOPAlertLogs\n| where WorkspaceId == targetWorkspaceId\n| extend IngestionTime = ingestion_time()\n| summarize arg_max(IngestionTime, *) by WorkspaceId\n| project WorkspaceId, ToChangeAOP, AOP, AOPMustBe, CreationTime, UserId, AlertStatus = \"EmailSent\"\n')",
+                                    "type": "Expression"
+                                },
+                                "commandTimeout": "00:20:00"
+                            },
+                            "linkedService": {
+                                "name": "MonitoringEventhouse",
+                                "objectId": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4",
+                                "properties": {
+                                    "annotations": [],
+                                    "type": "KustoDatabase",
+                                    "typeProperties": {
+                                        "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                                        "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                                        "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Office365Email2_copy1",
+                            "type": "Office365Email",
+                            "state": "Inactive",
+                            "onInactiveMarkAs": "Succeeded",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "to": {
+                                    "value": "@join(\n    xpath(\n        xml(\n            json(\n                concat(\n                    '{\"Root\": {\"Item\": ', \n                    string(activity('Web1').output.accessDetails), \n                    '}}'\n                )\n            )\n        ), \n        '/Root/Item[principal/type=\"User\" and workspaceAccessDetails/workspaceRole=\"Admin\"]/principal/userDetails/userPrincipalName/text()'\n    ), \n    '; '\n)",
+                                    "type": "Expression"
+                                },
+                                "subject": "test",
+                                "body": "<p>test test . here is a test :)</p>\n<p><br></p>"
+                            },
+                            "externalReferences": {
+                                "connection": "371bdff8-1e2c-4a6a-9836-4494786f0b3e"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "ListAlertChangedAOPWorkspaces",
+                "type": "Lookup",
+                "dependsOn": [
+                    {
+                        "activity": "AOPChangeAlertLog",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "KustoDatabaseSource",
+                        "query": {
+                            "value": "@concat('AOPAlertLogs\n| where ingestion_time() > todatetime(\"', variables('now'), '\")\n| extend IngestionTime = ingestion_time()\n| summarize arg_max(IngestionTime, UserId, AlertStatus) by WorkspaceId\n| where AlertStatus == \"Initial\"')",
+                            "type": "Expression"
+                        },
+                        "queryTimeout": "01:00:00",
+                        "noTruncation": true
+                    },
+                    "firstRowOnly": false,
+                    "datasetSettings": {
+                        "annotations": [],
+                        "linkedService": {
+                            "name": "MonitoringEventhouse",
+                            "properties": {
+                                "annotations": [],
+                                "type": "KustoDatabase",
+                                "typeProperties": {
+                                    "workspaceId": "611585cb-6332-4849-995e-efce839973f1",
+                                    "endpoint": "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com",
+                                    "database": "9dfa4f65-3226-4324-b450-5cdf8cdb11a4"
+                                }
+                            }
+                        },
+                        "type": "KustoDatabaseTable",
+                        "schema": []
+                    }
+                }
+            }
+        ],
+        "variables": {
+            "now": {
+                "type": "String"
+            },
+            "EmailListArray": {
+                "type": "Array"
+            },
+            "emailList": {
+                "type": "String"
+            }
+        },
+        "lastModifiedByObjectId": "03a65ab7-d0e9-4e6b-95cb-2de5bbb7ac43",
+        "lastPublishTime": "2026-03-06T15:04:12Z"
+    }
+}
