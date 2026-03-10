@@ -68,3 +68,5 @@ datatable(ItemKind:string) [
 | extend ModifiedAt = now()
 
 .create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string) 
+
+.create-merge table workspace_owner (workspaceId:guid, PrimaryEmail:string, SecondaryEmail:string)

@@ -30,3 +30,14 @@ aop
 
 
 .create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string) 
+
+// AlertLogs rows where workspace has no owner, or both PrimaryEmail and SecondaryEmail are null/empty/whitespace
+let validOwners = workspace_owner
+| where not(
+    (isempty(trim(" ", tostring(PrimaryEmail))) or isnull(PrimaryEmail))
+    and
+    (isempty(trim(" ", tostring(SecondaryEmail))) or isnull(SecondaryEmail))
+)
+| project workspaceId;
+AlertLogs
+| join kind=leftanti validOwners on $left.WorkspaceId == $right.workspaceId
