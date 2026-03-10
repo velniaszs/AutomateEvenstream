@@ -65,3 +65,15 @@ workspace_owner
 | summarize arg_max(IngestionTime, UserId, AlertStatus, CreationTime) by WorkspaceId
 | where AlertStatus == "Initial"
 | project WorkspaceId, CreationTime, UserId')
+
+
+@concat('.append AOPAlertLogs <|
+let targetWorkspaceId = toguid("', item().WorkspaceId,'");
+AOPAlertLogs
+| where ingestion_time() > todatetime("', variables('now'), '")
+| where WorkspaceId == targetWorkspaceId
+| extend IngestionTime = ingestion_time()
+| summarize arg_max(IngestionTime, *) by WorkspaceId
+| where AlertStatus == "Initial"
+| project WorkspaceId, ToChangeAOP, AOP, AOPMustBe, CreationTime, UserId, AlertStatus = "EmailSent"
+')
