@@ -29,11 +29,6 @@ datatable(ItemKind:string) [
 .set-or-replace DeleteLastRunTime <| 
 print LastRunTime = ago(4d)
 
-.create-merge table DataverseAOP (WorkSpaceName:string, WorkspaceId:guid, Activity:string) 
-
-.create-merge table DataverseAOP_Staging (WorkSpaceName:string, WorkspaceId:guid, Activity:string) 
-
-
 .create-merge table DeleteException (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string, ErrorCode:string, Description:string)
 
 .create-merge table WorkspaceLogs (type:string, datacontenttype:string, id:guid, ['time']:datetime, dataschemaversion:real, subject:string, source:guid, specversion:real, data_workspaceId:guid, data_workspaceName:string, data_itemName:string, data_itemId:guid, data_itemKind:string, data_executingPrincipalId:guid, data_executingPrincipalType:string) 
@@ -58,6 +53,7 @@ print LastRunTime = ago(4d)
     {"column":"data_executingPrincipalType", "path":"$.data.executingPrincipalType"}
 ]
 ```
+
 .create-merge table AllowedAOPItemKind (ItemKind:string, ModifiedAt:datetime)
 
 .set-or-replace AllowedAOPItemKind <|
@@ -71,4 +67,8 @@ datatable(ItemKind:string) [
 
 .create-merge table workspace_owner (workspaceId:guid, PrimaryEmail:string, SecondaryEmail:string, modifiedon:datetime)
 
-.create-merge table staging_workspace_owner (workspaceId:guid, PrimaryEmail:string, SecondaryEmail:string, modifiedon:datetime)
+.create-merge table workspace_owner_staging (workspaceId:guid, PrimaryEmail:string, SecondaryEmail:string, modifiedon:datetime)
+
+.create-merge table DataverseAOP (WorkspaceId:guid, AOPEnabled:bool, createdon:datetime, modifiedon:datetime)
+
+.create-merge table DataverseAOP_Staging (WorkspaceId:guid, AOPEnabled:bool, createdon:datetime, modifiedon:datetime)
