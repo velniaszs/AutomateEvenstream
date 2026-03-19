@@ -1,11 +1,6 @@
 {
     "value":  [
                   {
-                      "id":  "46b3e401-3119-4b64-969f-7c15ad2fab9e",
-                      "displayName":  "West US",
-                      "workspaceId":  "611585cb-6332-4849-995e-efce839973f1"
-                  },
-                  {
                       "id":  "605a2089-b8df-47c1-9c21-fb43429c74bc",
                       "displayName":  "test",
                       "workspaceId":  "611585cb-6332-4849-995e-efce839973f1"

@@ -72,13 +72,14 @@ $createEventstreamsScript = Join-Path $PSScriptRoot "\create-all-evenstreams-in-
 
 Write-Host "--- Step 8: Create Eventstream Data Files ---"
 $createEventstreamDataScript = Join-Path $PSScriptRoot "\create-evenstreams-data.ps1"
-& $createEventstreamDataScript -WorkspaceId $MonWorkspaceId -DatabaseName "MonitoringEventhouse" -DatabaseId $databaseId
+& $createEventstreamDataScript -destinationWorkspaceId $MonWorkspaceId -DatabaseName "MonitoringEventhouse" -DatabaseId $databaseId
 
 Write-Host "Waiting for 1 minute before updating eventstreams..."
 Start-Sleep -Seconds 60
 
 Write-Host "--- Step 9: Update Eventstreams Data ---"
-$updateAllEventstreamsScript = Join-Path $PSScriptRoot "..\update-all-eventstreams.ps1"
+$updateAllEventstreamsScript = Join-Path $PSScriptRoot "\update-all-eventstreams.ps1"
 & $updateAllEventstreamsScript -WorkspaceId $MonWorkspaceId -AuthToken $fabricToken
+
 
 Write-Host "--- All steps completed ---"

@@ -60,11 +60,27 @@ $headers = @{
 #Write-Host "Updating Eventstream..."
 #Write-Host "URI: $uri"
 
-try {
-    $response = Invoke-WebRequest -Uri $uri -Method Post -Headers $headers -Body $jsonPayload -UseBasicParsing
-    #Write-Host "Eventstream updated successfully."
-    #Write-Output $response
-}
-catch {
-    Write-Error "Failed to update Eventstream. Error: $_"
+$maxRetries = 5
+$attempt = 0
+while ($attempt -le $maxRetries) {
+    try {
+        $response = Invoke-WebRequest -Uri $uri -Method Post -Headers $headers -Body $jsonPayload -UseBasicParsing
+        #Write-Host "Eventstream updated successfully."
+        #Write-Output $response
+        break
+    }
+    catch {
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429 -and $attempt -lt $maxRetries) {
+            $retryAfter = $_.Exception.Response.Headers["Retry-After"]
+            if (-not $retryAfter) { $retryAfter = 60 }
+            Write-Warning "Rate limit hit (429). Waiting $retryAfter seconds before retry (attempt $($attempt + 1)/$maxRetries)..."
+            Start-Sleep -Seconds ([int]$retryAfter)
+            $attempt++
+        }
+        else {
+            Write-Error "Failed to update Eventstream. Error: $_"
+            break
+        }
+    }
 }

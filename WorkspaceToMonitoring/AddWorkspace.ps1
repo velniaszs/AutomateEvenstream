@@ -1,6 +1,15 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
+    [string]$TenantId='',
+
+    [Parameter(Mandatory = $false)]
+    [string]$ClientId = '',
+
+    [Parameter(Mandatory = $false)]
+    [string]$ClientSecret = '',
+
+    [Parameter(Mandatory = $false)]
     [string]$MonWorkspaceId = "611585cb-6332-4849-995e-efce839973f1", #WorkspaceId that hosts Monitoring Solution
     [Parameter(Mandatory = $false)]
     [string]$MonEventhouseName = "MonitoringEventhouse", #Name of the Monitoring Solution Eventhouse
@@ -35,7 +44,7 @@ $AOPSetting = if ($AopEnabled) { "EnableWorkspaceOutboundAccessProtection" } els
 
 Write-Host "--- Step 0: Getting Fabric Token ---"
 $fabricTokenScript = Join-Path $PSScriptRoot "..\get-Fabric-token.ps1"
-$fabricToken = & $fabricTokenScript
+$fabricToken = & $fabricTokenScript -tenantId $TenantId -clientId $ClientId -client_secret $ClientSecret
 
 
 if ([string]::IsNullOrWhiteSpace($fabricToken)) {
@@ -45,7 +54,7 @@ if ([string]::IsNullOrWhiteSpace($fabricToken)) {
 
 Write-Host "--- Step 0: Getting KQL Token ---"
 $kqlTokenScript = Join-Path $PSScriptRoot "..\get-kql-token.ps1"
-$kqlToken = & $kqlTokenScript
+$kqlToken = & $kqlTokenScript -tenantId $TenantId -clientId $ClientId -client_secret $ClientSecret
 
 if ([string]::IsNullOrWhiteSpace($fabricToken)) {
     Write-Error "Failed to retrieve Fabric Token."

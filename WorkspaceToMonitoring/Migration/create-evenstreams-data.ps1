@@ -1,6 +1,6 @@
 param (
     [Parameter(Mandatory = $true)]
-    [string]$WorkspaceId,
+    [string]$destinationWorkspaceId,
 
     [Parameter(Mandatory = $true)]
     [string]$DatabaseId,
@@ -37,10 +37,11 @@ foreach ($group in $uniqueGroups) {
             $destination.id = [Guid]::NewGuid().ToString()
             
             if ($destination.properties) {
-                $destination.properties.workspaceId = $WorkspaceId
+                $destination.properties.workspaceId = $destinationWorkspaceId
                 $destination.properties.itemId = $DatabaseId
-                $destination.properties.connectionName = $group
-                #$destination.properties.databaseName = $DatabaseName
+                
+                $randomSuffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+                $destination.properties.connectionName = "${group}_${randomSuffix}" # Unique connection name. Added, because after deletion, the same name cannot be reused.
             }
             if ($destination.inputNodes) {
                 foreach ($node in $destination.inputNodes) {

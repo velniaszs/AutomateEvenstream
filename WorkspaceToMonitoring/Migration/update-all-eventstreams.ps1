@@ -11,7 +11,7 @@ $ErrorActionPreference = "Stop"
 
 # Paths
 $outputFolder = Join-Path $PSScriptRoot "Output"
-$updateScript = Join-Path $PSScriptRoot "update-eventstream.ps1"
+$updateScript = Join-Path $PSScriptRoot "..\update-eventstream.ps1"
 
 # Validate paths
 if (-not (Test-Path $outputFolder)) {
