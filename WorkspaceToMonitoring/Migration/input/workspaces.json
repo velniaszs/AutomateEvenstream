@@ -1,0 +1,240 @@
+﻿[
+    {
+        "id":  "0b22017b-1209-4ddd-88eb-97fded62d8c6",
+        "name":  "sks-demo-ws",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "5e54ea4e-ad3e-46a1-bb4c-3ab1c7e63d70",
+        "name":  "demo-wks-01",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "ef8eb25f-dcf1-4a8b-a300-496bd34ca187",
+        "name":  "demo-wks-02",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "6fe80730-85b8-4473-b4d0-6d85318cb32f",
+        "name":  "demo-wks-04",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "9c1ee831-7e13-4fba-ae2c-c1b961e9ddd7",
+        "name":  "demo-wks-03",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "bd615b40-8570-40e0-814f-ab983264a588",
+        "name":  "max-ws-tst",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "61F9B304-1770-4BF1-BB78-B427540DB044"
+    },
+    {
+        "id":  "126ecad6-6b73-4df9-9217-11f5ecac07db",
+        "name":  "health-wks-01",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "43a283a0-f114-43ed-9ae2-0a1c8feebf4a",
+        "name":  "poc-wks-01",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "93826594-821d-46c8-83f6-d8073e73bf0c",
+        "name":  "poc-wks-02",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "955f4a24-843d-451b-8b7c-9473e789d10a",
+        "name":  "Microsoft Fabric Capacity Metrics 8/21/2025, 12:53:18 AM",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8BF81C88-1656-4FB1-A2FE-50E2DA7B1E51"
+    },
+    {
+        "id":  "f036653e-5322-4d10-808d-6fb518979b5d",
+        "name":  "FUAM",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5",
+        "domainId":  "abbe12e1-af6a-499c-bbce-d7848f5c6d4b"
+    },
+    {
+        "id":  "71632c8a-05df-4505-9a0f-1763c43830e5",
+        "name":  "fabric_inventory_solution",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "0cc47dfa-f9b2-4e97-9d9b-a9817ade9bad",
+        "name":  "oap-wks-05",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "f88958ec-9586-4e79-9a83-db8e80d690d3",
+        "name":  "poc-wks-03",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "e4ae08f8-0127-4445-b4b7-63e9a661da43",
+        "name":  "poc-wks-pbi",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "57a9444c-057d-4b4d-b687-4df54eb26239"
+    },
+    {
+        "id":  "4d05a266-ebdf-4b8d-9db2-7acb82a43a84",
+        "name":  "poc-wks-04",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "f851e11f-18d5-4033-8111-9f3b97c04f3f",
+        "name":  "poc-wks-06",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "460e8b24-5020-4101-8a93-191191621f12",
+        "name":  "Microsoft Fabric Capacity Metrics",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8BF81C88-1656-4FB1-A2FE-50E2DA7B1E51"
+    },
+    {
+        "id":  "de5f1bf8-5904-44ca-8040-65974230f755",
+        "name":  "poc-wks-99",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "c7a609f6-6e66-459f-bf6d-21ae2c162552",
+        "name":  "Microsoft Fabric Capacity Metrics 6/1/2026, 3:43:09 pm",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "F78370C9-A660-4AB4-B55A-45AB15B5BF4E"
+    },
+    {
+        "id":  "ee36dda9-f842-49fe-a748-5fcf49bd0865",
+        "name":  "poc-wks-monitor",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "7dde40be-0e5a-4d3d-992d-6e31db969f75"
+    },
+    {
+        "id":  "937f0201-1973-4cc4-a834-8280e7118dca",
+        "name":  "ws-monitor-suzi",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "5d2eeef3-beb2-450e-a065-1f252a15ea39",
+        "name":  "demo-wks-05",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "951bdd46-de44-433c-9ee5-172800a9ff0a",
+        "name":  "wks-user4",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "a9db6514-b58a-46a1-91b7-6de3b228a6ec",
+        "name":  "wks-test-oap",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "dfe401d5-41e3-4ad9-8e82-a3886d070f3f",
+        "name":  "ab_demo_1",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "6660419a-a6f9-41ea-bd0f-597d1f3c519b",
+        "name":  "ab_demo_2",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "7d8301d0-d8af-43b8-9c35-2397c92952a8",
+        "name":  "ab_demo_3",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "b7c510d6-c7fb-4311-a627-8c49f3f28933",
+        "name":  "ab_demo_4",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "f73c8923-e8f9-4003-80d5-a8185221117d",
+        "name":  "ws-user4-02",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "e9de0b2d-0cc1-42ed-9395-28da86acfd97",
+        "name":  "ab_demo_5",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "c901e63a-904f-4aa1-ab29-fcbde309efe8",
+        "name":  "xxxx",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "8F4507B4-8A01-4A21-953D-DFE345AAC1B5"
+    },
+    {
+        "id":  "8fd93f0a-cbd3-4db8-a77a-5f953d59e9d0",
+        "name":  "new-ws",
+        "state":  "Active",
+        "type":  "Workspace",
+        "capacityId":  "5E982128-77D7-4B04-9B57-294D2A68F18F"
+    },
+    {
+        "id":  "92184f96-452d-4d78-a291-801e3d5919d0",
+        "name":  "Microsoft Fabric Chargeback Reporting",
+        "state":  "Active",
+        "type":  "Workspace"
+    }
+]

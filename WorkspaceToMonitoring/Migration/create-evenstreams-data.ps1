@@ -64,7 +64,7 @@ foreach ($group in $uniqueGroups) {
 
     # Add sources for each workspace in the group
     $groupWorkspaces = $capacityDetails | Where-Object { $_.workspaceGroup -eq $group }
-    $addSourceScript = Join-Path $PSScriptRoot "add-source.ps1"
+    $addSourceScript = Join-Path $PSScriptRoot "\add-source.ps1"
 
     foreach ($ws in $groupWorkspaces) {
         $group = $ws.workspaceGroup

@@ -10,10 +10,10 @@ param(
     [string]$AuthToken ,
 
     [Parameter(Mandatory = $true)]
-    [string]$folderId,
-
-    [Parameter(Mandatory = $true)]
-    [string]$capacityName
+    [string]$folderId
+    # ,
+    # [Parameter(Mandatory = $true)]
+    # [string]$capacityName
 )
 
 $ErrorActionPreference = "Stop"

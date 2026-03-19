@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 # Paths to JSON files
 $workspaceDetailsPath = Join-Path $PSScriptRoot "\input\workspace_capacity_details.json"
 $foldersPath = Join-Path $PSScriptRoot "\input\folders.json"
-$createEventstreamScript = Join-Path $PSScriptRoot "\create-eventstream.ps1"
+$createEventstreamScript = Join-Path $PSScriptRoot "..\create-eventstream.ps1"
 
 # Check if files exist
 if (-not (Test-Path $workspaceDetailsPath)) { Write-Error "File not found: $workspaceDetailsPath"; exit }
@@ -99,7 +99,7 @@ foreach ($group in $groupsToCreate) {
     # Call create-eventstream.ps1
     try {
         Write-Host "  Calling create-eventstream.ps1..."
-        & $createEventstreamScript -WorkspaceId $WorkspaceId -DisplayName $displayName -AuthToken $AuthToken -folderId $folderId -capacityId $capacityId
+        & $createEventstreamScript -WorkspaceId $WorkspaceId -EventstreamName $displayName -AuthToken $AuthToken -folderId $folderId
     }
     catch {
         Write-Error "  Failed to create eventstream '$displayName'. Error: $_"
