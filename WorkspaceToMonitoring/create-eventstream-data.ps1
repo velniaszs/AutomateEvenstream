@@ -68,6 +68,8 @@ if ($IsEvenstreamEmpty -eq "yes") {
     } else {
         Copy-Item -Path $jsonPath -Destination (Join-Path $outputFolder "$capacityName.json") -Force
     }
+} else {
+    Copy-Item -Path $jsonPath -Destination (Join-Path $outputFolder "$capacityName.json") -Force
 }
 
 $outputjsonPath = Join-Path $outputFolder "$capacityName.json"
