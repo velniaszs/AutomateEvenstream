@@ -1,4 +1,4 @@
-
+.vscode/
 get-Dataverse-token.ps1
 get-Fabric-token2.ps1
 UpdateEvenstream/Output/
@@ -7,3 +7,5 @@ UpdateEvenstream/input/*
 WorkspaceToMonitoring/Output/
 WorkspaceToMonitoring/input/*
 !WorkspaceToMonitoring/input/clean_evenstream.json
+WorkspaceToMonitoring/Migration/input/*
+WorkspaceToMonitoring/Migration/output/*
