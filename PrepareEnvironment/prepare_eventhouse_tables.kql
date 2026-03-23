@@ -72,3 +72,5 @@ datatable(ItemKind:string) [
 .create-merge table DataverseAOP (WorkspaceId:guid, Activity:string, createdon:datetime, modifiedon:datetime)
 
 .create-merge table DataverseAOP_Staging (WorkspaceId:guid, AOPEnabled:bool, createdon:datetime, modifiedon:datetime)
+
+.create-merge table MonitoredWorkspaces (WorkspaceId:guid, WorkspaceName:string)
