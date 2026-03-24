@@ -30,6 +30,8 @@ if ($null -eq $jsonContent) {
     exit 1
 }
 
+$workspaceName = $workspaceName -replace '[^a-zA-Z0-9]', '-'
+
 if ($CheckWorkspace -eq "yes") {
     # Check if source name already exists
     $existingName = $jsonContent.sources | Where-Object { $_.name -eq $workspaceName }

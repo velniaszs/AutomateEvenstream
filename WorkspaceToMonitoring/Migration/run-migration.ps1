@@ -54,9 +54,13 @@ Write-Host "--- Step 3: Download Workspaces ---"
 $listWorkspacesScript = Join-Path $PSScriptRoot "\list-workspaces.ps1"
 & $listWorkspacesScript -AuthToken $fabricToken -VerifyOAP $false -WorkspaceId $MonWorkspaceId
 
+Write-Host "--- Step 3a: Filter Workspaces by Allowed List ---" # this was added for migration purposse to filter only the workspaces that are in scope for migration
+$filterWorkspacesScript = Join-Path $PSScriptRoot "\filter-workspaces.ps1"
+& $filterWorkspacesScript
+
 Write-Host "--- Step 4: Join Workspaces and Capacities ---"
 $joinScript = Join-Path $PSScriptRoot "\join-workspaces-capacities.ps1"
-& $joinScript -GroupSize 48 #will be 48 in the future. 5 is for testing purposes
+& $joinScript -GroupSize 48 #this is the size of 1 evenstream source count per eventstream, adjust as necessary
 
 Write-Host "--- Step 5: Create Folders for each Capacity Region ---"
 $createFolderScript = Join-Path $PSScriptRoot "\create-region-folders.ps1"
