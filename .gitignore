@@ -9,3 +9,4 @@ WorkspaceToMonitoring/input/*
 !WorkspaceToMonitoring/input/clean_evenstream.json
 WorkspaceToMonitoring/Migration/input/*
 WorkspaceToMonitoring/Migration/output/*
+!WorkspaceToMonitoring/Migration/input/clean_evenstream.json
