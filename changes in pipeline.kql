@@ -1,0 +1,158 @@
+//AlertsByDataverseAOP
+@concat('.append AlertLogs <|    
+    let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+    let startTimeFilter = iff(isnull(lastRunParam), ago(100d), lastRunParam);
+    let ak = AllowedItemKind;
+    let wl = WorkspaceLogs
+    | where ingestion_time() > startTimeFilter
+    | where ingestion_time() < todatetime("', variables('now'),'")
+    | extend IngestionTime = ingestion_time()
+    | where type == "Microsoft.Fabric.ItemCreateSucceeded"
+    | project WorkspaceName = data_workspaceName, data_workspaceId, wstime = ["time"], data_itemName, data_itemId, data_itemKind, type, IngestionTime;
+    let aop =
+    DataverseWorkspace
+    | extend IngestionTime = ingestion_time()
+    | summarize arg_max(IngestionTime, *) by WorkspaceId
+    | where OAPActivity == "DisableWorkspaceOutboundAccessProtection"
+    | where IsMonitored == true
+    | project WorkspaceId, Activity= OAPActivity;
+    wl
+    | join kind = inner 
+        aop
+        on  $left.data_workspaceId == $right.WorkspaceId
+    | join kind = leftanti 
+        ak
+        on $left.data_itemKind == $right.ItemKind
+    | project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId
+    | extend AlertStatus = "Initial"
+    // 3. Filter out records that already exist in the destination table
+    | join kind=leftanti (
+        AlertLogs 
+    ) on WorkspaceId, data_itemId')
+
+
+    =====================================================
+    //AlertsifDisabledAOP
+    @concat('.append AlertLogs <| 
+let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);
+let ak = AllowedItemKind;
+let wl = WorkspaceLogs
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < todatetime("', variables('now'),'")
+| extend IngestionTime = ingestion_time()
+| where type == "Microsoft.Fabric.ItemCreateSucceeded"
+| project WorkspaceName = data_workspaceName, data_workspaceId, wstime = ["time"], data_itemName, data_itemId, data_itemKind, type, IngestionTime;
+let daop =
+DataverseWorkspace
+| summarize arg_max(ingestion_time(), OAPActivity, IsMonitored) by WorkspaceId
+| where OAPActivity == "EnableWorkspaceOutboundAccessProtection"
+| where IsMonitored == true
+| project WorkspaceId;
+let aop =
+WorkspaceOutboundAccessProtection
+| extend IngestionTime = ingestion_time()
+| order by WorkspaceId, CreationTime asc
+| serialize 
+| extend NextCreationTime = next(CreationTime)
+| extend NextActivity = next(Activity)
+| extend NextWorkspaceId = next(WorkspaceId)
+| extend endTime = iff(WorkspaceId == NextWorkspaceId and Activity != NextActivity, NextCreationTime, datetime(2999-01-01))
+| where Activity == "DisableWorkspaceOutboundAccessProtection"
+| project WorkspaceId, startTime = CreationTime, endTime;
+wl
+| join kind = inner 
+    daop
+    on $left.data_workspaceId == $right.WorkspaceId
+| join kind = inner 
+    aop
+    on  $left.data_workspaceId == $right.WorkspaceId
+| join kind = leftanti 
+    ak
+    on $left.data_itemKind == $right.ItemKind
+| where wstime > startTime and wstime <= endTime
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId
+| extend AlertStatus = "Initial"
+// 3. Filter out records that already exist in the destination table
+| join kind=leftanti (
+    AlertLogs 
+) on WorkspaceId, data_itemId')
+
+
+=============================
+//AOPChangeAlertLog
+@concat('.append AOPAlertLogs <|
+let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);
+let daop =
+DataverseWorkspace
+| summarize arg_max(ingestion_time(), OAPActivity, IsMonitored) by WorkspaceId
+| where IsMonitored = true
+| project daopWorkspaceId = WorkspaceId, daopActivity = OAPActivity;
+let aop = 
+WorkspaceOutboundAccessProtection
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < todatetime("', variables('now'),'")
+| project Activity, WorkspaceId, CreationTime,Id, UserId;
+let laop = 
+WorkspaceOutboundAccessProtection
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < todatetime("', variables('now'),'")
+| summarize arg_max(CreationTime, Activity) by WorkspaceId
+| project WorkspaceId, LastActivity = Activity;
+let al = AOPAlertLogs
+| project Id;
+aop
+| join kind=inner (
+    daop 
+) on $left.WorkspaceId == $right.daopWorkspaceId
+| join kind=inner (
+    laop
+) on WorkspaceId
+| join kind=leftanti (
+    al
+) on Id
+| where Activity !=daopActivity
+| project WorkspaceId, ToChangeAOP = iif(LastActivity==daopActivity,false,true), AOP = LastActivity, AOPMustBe = daopActivity, CreationTime, UserId, AlertStatus = "Initial", Id')
+
+
+
+=================================================
+//disabled ->AlertsWhenAOPShouldBeEnabled
+@concat('.append AlertLogs <| 
+let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);
+let ak = AllowedAOPItemKind;
+let wl = WorkspaceLogs
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < todatetime("', variables('now'),'")
+| extend IngestionTime = ingestion_time()
+| where type == "Microsoft.Fabric.ItemCreateSucceeded"
+| project WorkspaceName = data_workspaceName, data_workspaceId, wstime = ["time"], data_itemName, data_itemId, data_itemKind, type, IngestionTime;
+let aop =
+WorkspaceOutboundAccessProtection
+| summarize arg_max(CreationTime, Activity) by WorkspaceId
+| where Activity == "DisableWorkspaceOutboundAccessProtection"
+| project WorkspaceId;
+let daop =
+DataverseWorkspace
+| summarize arg_max(ingestion_time(), OAPActivity, IsMonitored) by WorkspaceId
+| where IsMonitored == true
+| where OAPActivity == "EnableWorkspaceOutboundAccessProtection"
+| project WorkspaceId;
+wl
+| join kind = inner 
+    aop
+    on  $left.data_workspaceId == $right.WorkspaceId
+| join kind = inner 
+    daop
+    on  $left.data_workspaceId == $right.WorkspaceId
+| join kind = leftanti 
+    ak
+    on $left.data_itemKind == $right.ItemKind
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId
+| extend AlertStatus = "Initial"
+// 3. Filter out records that already exist in the destination table
+| join kind=leftanti (
+    AlertLogs 
+) on WorkspaceId, data_itemId')

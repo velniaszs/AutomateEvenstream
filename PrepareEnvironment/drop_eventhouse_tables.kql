@@ -4,7 +4,13 @@
 .drop table MonitoringLastRunTime ifexists
 .drop table AlertLogs ifexists
 .drop table DeleteLastRunTime ifexists
-.drop table DataverseAOP ifexists
-.drop table DataverseAOP_Staging ifexists
 .drop table DeleteException ifexists
 .drop table WorkspaceLogs ifexists
+.drop table workspace_owner ifexists
+.drop table workspace_owner_staging ifexists
+.drop table AOPAlertLogs ifexists
+.drop table DataverseWorkspace_Staging ifexists
+.drop table DataverseWorkspace ifexists
+
+#.drop table DataverseAOP ifexists
+#.drop table DataverseAOP_Staging ifexists

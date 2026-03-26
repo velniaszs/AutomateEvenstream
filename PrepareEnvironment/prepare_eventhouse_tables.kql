@@ -6,8 +6,6 @@
 
 .create-merge table MonitoringLastRunTime (LastRunTime:datetime)
 
-.create-merge table workspace_owner (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid)
-
 .create-merge table AlertLogs (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string) 
 
 .set-or-replace MonitoringLastRunTime <| 
@@ -30,10 +28,6 @@ datatable(ItemKind:string) [
 
 .set-or-replace DeleteLastRunTime <| 
 print LastRunTime = ago(4d)
-
-.create-merge table DataverseAOP (WorkspaceName:string, WorkspaceId:guid, Activity:string)
-
-.create-merge table DataverseAOP_Staging (WorkspaceName:string, WorkspaceId:guid, Activity:string)
 
 .create-merge table DeleteException (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string, ErrorCode:string, Description:string)
 
@@ -60,8 +54,16 @@ print LastRunTime = ago(4d)
 ]
 ```
 
-.create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string, Id:guid) 
+.create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string, Id:guid)
+
+.create-merge table workspace_owner (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid)
 
 .create-merge table workspace_owner_staging (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid)
 
-.create-merge table MonitoredWorkspaces (WorkspaceId:guid, WorkspaceName:string)
+.create-merge table DataverseWorkspace (WorkspaceId:guid, WorkspaceName:string, OAPActivity:string, IsMonitored:bool)
+
+.create-merge table DataverseWorkspace_Staging (WorkspaceId:guid, WorkspaceName:string, OAPActivity:string, IsMonitored:bool)
+
+#.create-merge table DataverseAOP (WorkspaceName:string, WorkspaceId:guid, Activity:string)
+
+#.create-merge table DataverseAOP_Staging (WorkspaceName:string, WorkspaceId:guid, Activity:string)
