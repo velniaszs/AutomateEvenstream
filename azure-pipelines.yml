@@ -1,17 +1,8 @@
 # Azure DevOps Pipeline for Python
 # Simple pipeline to verify Python execution
+# Runs on demand only
 
-trigger:
-  branches:
-    include:
-      - main
-      - develop
-
-pr:
-  branches:
-    include:
-      - main
-      - develop
+trigger: none
 
 pool:
   vmImage: 'ubuntu-latest'
