@@ -1,0 +1,39 @@
+# Azure DevOps Pipeline for Python
+# Simple pipeline to verify Python execution
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.11'
+
+stages:
+  - stage: Test
+    displayName: 'Run Python Script'
+    jobs:
+      - job: TestJob
+        displayName: 'Python Job'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+              addToPath: true
+            displayName: 'Use Python $(pythonVersion)'
+
+          - script: |
+              python --version
+              echo "Running Python test script..."
+              python -c "print('Hello from Azure DevOps Pipeline!'); print('Python is working correctly')"
+            displayName: 'Run Python test'

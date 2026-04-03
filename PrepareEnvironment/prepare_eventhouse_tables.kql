@@ -60,10 +60,7 @@ print LastRunTime = ago(4d)
 
 .create-merge table workspace_owner_staging (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid)
 
-.create-merge table DataverseWorkspace (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon datetime, modifiedon datetime)
+.create-merge table DataverseWorkspace (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon:datetime, modifiedon:datetime)
 
-.create-merge table DataverseWorkspace_Staging (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon datetime, modifiedon datetime)
+.create-merge table DataverseWorkspace_Staging (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon:datetime, modifiedon:datetime)
 
-#.create-merge table DataverseAOP (WorkspaceName:string, WorkspaceId:guid, Activity:string, modifiedon datetime)
-
-#.create-merge table DataverseAOP_Staging (WorkspaceName:string, WorkspaceId:guid, Activity:string, modifiedon datetime)
