@@ -1,0 +1,9 @@
+variables:
+  - name: environment
+    value: 'DEV'
+  
+  - name: workspaceId
+    value: 'your-dev-workspace-id'
+  
+  - name: workspaceName
+    value: 'Fabric Dev Workspace'

@@ -1,0 +1,142 @@
+trigger: none
+
+parameters:
+  - name: environment
+    displayName: 'Target Environment'
+    type: string
+    default: 'DEV'
+    values:
+      - DEV
+      - TEST
+      - PROD
+
+resources:
+  repositories:
+    - repository: fabricWorkspace
+      type: git
+      name: test_Fabric/test_Fabric
+      ref: main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  # Common variables
+  - name: azureServiceConnection
+    value: 'devops-service-connection'
+  
+  - name: tenantId
+    value: '9e929790-272d-4977-a2ab-301443c11ece'
+  
+  - name: clientId
+    value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
+  
+  - name: scriptPath
+    value: 'UpdateEvenstream/update-eventstream.ps1'
+  
+  # Environment-specific variables
+  - ${{ if eq(parameters.environment, 'DEV') }}:
+    - template: variables/dev-variables.yml
+  - ${{ if eq(parameters.environment, 'TEST') }}:
+    - template: variables/test-variables.yml
+  - ${{ if eq(parameters.environment, 'PROD') }}:
+    - template: variables/prod-variables.yml
+
+steps:
+# 1. Checkout repositories
+- checkout: self
+  path: 's/AutomateEvenstream'
+  displayName: 'Checkout pipeline repository'
+
+- checkout: fabricWorkspace
+  path: 's/test_Fabric'
+  displayName: 'Checkout Fabric workspace repository'
+
+# 2. Retrieve the Client Secret from Azure Key Vault
+- task: AzureKeyVault@2
+  displayName: 'Get Secrets from Key Vault'
+  inputs:
+    azureSubscription: '$(azureServiceConnection)'
+    KeyVaultName: 'ab-fabric-automation-akv'
+    SecretsFilter: 'fabric-monit-secret'
+    RunAsPreJob: false
+
+# 3. Install Python dependencies
+- task: UsePythonVersion@0
+  displayName: 'Use Python 3.12'
+  inputs:
+    versionSpec: '3.12'
+    addToPath: true
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install fabric-cicd azure-identity semantic-link-labs
+  displayName: 'Install Python packages'
+
+# 4. Run fabric-cicd deployment script
+- task: PythonScript@0
+  displayName: 'Deploy Fabric Items using fabric-cicd'
+  inputs:
+    scriptSource: 'filePath'
+    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/fabric-cicd.py'
+    arguments: >
+      --client-id $(clientId)
+      --client-secret $(fabric-monit-secret)
+      --tenant-id $(tenantId)
+      --workspace-id $(workspaceId)
+      --environment ${{ parameters.environment }}
+      --repository-path $(Build.SourcesDirectory)/test_Fabric
+  env:
+    PYTHONUNBUFFERED: '1'
+
+# 5. Execute post-deployment notebook
+- task: PythonScript@0
+  displayName: 'Execute Post-Deployment Notebook: LoadOAP'
+  inputs:
+    scriptSource: 'inline'
+    script: |
+      import sys
+      sys.path.insert(0, '$(Build.SourcesDirectory)/AutomateEvenstream/deployment')
+      
+      from notebook_executor import NotebookExecutor
+      
+      # Configuration
+      WORKSPACE_ID = "$(workspaceId)"
+      TENANT_ID = "$(tenantId)"
+      CLIENT_ID = "$(clientId)"
+      CLIENT_SECRET = "$(fabric-monit-secret)"
+      NOTEBOOK_NAME = "LoadOAP"
+      ENVIRONMENT = "${{ parameters.environment }}"
+      
+      print(f"🚀 Executing post-deployment notebook: LoadOAP")
+      print(f"   Environment: {ENVIRONMENT}")
+      print(f"   Workspace: {WORKSPACE_ID}")
+      
+      # Create executor
+      executor = NotebookExecutor(
+          workspace_id=WORKSPACE_ID,
+          tenant_id=TENANT_ID,
+          client_id=CLIENT_ID,
+          client_secret=CLIENT_SECRET
+      )
+      
+      # Run notebook synchronously
+      result = executor.run_notebook_synchronous(
+          notebook_name=NOTEBOOK_NAME,
+          parameters={
+              "environment": ENVIRONMENT
+          },
+          timeout_seconds=1000
+      )
+      
+      # Check result
+      if result.get("status") == "Completed":
+          print("✅ Notebook execution completed successfully!")
+          sys.exit(0)
+      else:
+          print(f"❌ Notebook execution failed: {result.get('status')}")
+          if "error" in result:
+              print(f"   Error: {result['error']}")
+          sys.exit(1)
+  env:
+    PYTHONUNBUFFERED: '1'

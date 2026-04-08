@@ -1,0 +1,9 @@
+variables:
+  - name: environment
+    value: 'PROD'
+  
+  - name: workspaceId
+    value: 'your-prod-workspace-id'
+  
+  - name: workspaceName
+    value: 'Fabric Prod Workspace'
