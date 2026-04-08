@@ -10,3 +10,5 @@ WorkspaceToMonitoring/input/*
 WorkspaceToMonitoring/Migration/input/*
 WorkspaceToMonitoring/Migration/output/*
 !WorkspaceToMonitoring/Migration/input/clean_evenstream.json
+deployment/venv-py312/*
+deployment/__pucache__/*
