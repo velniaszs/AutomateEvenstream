@@ -56,9 +56,9 @@ print LastRunTime = ago(4d)
 
 .create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string, Id:guid)
 
-.create-merge table workspace_owner (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid)
+.create-merge table workspace_owner (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid, modifiedon:datetime)
 
-.create-merge table workspace_owner_staging (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid)
+.create-merge table workspace_owner_staging (PrimaryEmail:string, SecondaryEmail:string, workspaceId:guid, modifiedon:datetime)
 
 .create-merge table DataverseWorkspace (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon:datetime, modifiedon:datetime)
 
