@@ -12,3 +12,4 @@ WorkspaceToMonitoring/Migration/output/*
 !WorkspaceToMonitoring/Migration/input/clean_evenstream.json
 deployment/venv-py312/*
 deployment/__pycache__/*
+authenticate/*
