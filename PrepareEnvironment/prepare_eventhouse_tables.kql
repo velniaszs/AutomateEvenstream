@@ -8,26 +8,7 @@
 
 .create-merge table AlertLogs (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string) 
 
-.set-or-replace MonitoringLastRunTime <| 
-print LastRunTime = ago(4d)
-
-.set-or-replace AllowedItemKind <|
-datatable(ItemKind:string) [
-    "VariableLibrary",
-    "KQLDashboard",
-    "Eventstream",
-    "cosmosdb",
-    "azuredb",
-    "MirroredAzureDatabricksCatalog",
-    "SqlAnalyticsEndpoint",
-    "MountedDataFactory"
-]
-| extend ModifiedAt = now()
-
 .create-merge table DeleteLastRunTime (LastRunTime:datetime)
-
-.set-or-replace DeleteLastRunTime <| 
-print LastRunTime = ago(4d)
 
 .create-merge table DeleteException (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string, ErrorCode:string, Description:string)
 
@@ -64,3 +45,27 @@ print LastRunTime = ago(4d)
 
 .create-merge table DataverseWorkspace_Staging (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon:datetime, modifiedon:datetime)
 
+.set-or-replace MonitoringLastRunTime <| 
+print LastRunTime = ago(4d)
+
+.set-or-replace AllowedItemKind <|
+datatable(ItemKind:string) [
+    "VariableLibrary",
+    "SemanticModel", // no event
+    "Report", // no event
+    "App", // no event
+    "Dashboard", // no event
+    "Scorecard", // no event
+    "KQLDashboard",
+    "Eventstream",
+    "cosmosdb", // no event
+    "azuredb", // no event
+    "MirroredAzureDatabricksCatalog", // to remove
+    "SqlAnalyticsEndpoint",
+    "MountedDataFactory",
+    "DataFlowGen1" // no event
+]
+| extend ModifiedAt = now()
+
+.set-or-replace DeleteLastRunTime <| 
+print LastRunTime = ago(4d)
