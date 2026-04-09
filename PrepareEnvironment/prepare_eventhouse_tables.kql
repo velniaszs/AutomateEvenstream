@@ -6,7 +6,7 @@
 
 .create-merge table MonitoringLastRunTime (LastRunTime:datetime)
 
-.create-merge table AlertLogs (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string) 
+.create-merge table AlertLogs (WorkspaceName:string, WorkspaceId:guid, wstime:datetime, data_itemKind:string, data_itemName:string, data_itemId:guid, AlertStatus:string, UserId:guid)
 
 .create-merge table DeleteLastRunTime (LastRunTime:datetime)
 
@@ -35,7 +35,7 @@
 ]
 ```
 
-.create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string, Id:guid)
+.create-merge table AOPAlertLogs (WorkspaceId:guid, ToChangeAOP:bool, AOP:string, AOPMustBe:string, CreationTime:datetime, UserId:string, AlertStatus:string, Id:guid, UserKey:string)
 
 .create-merge table workspace_owner (workspaceId:guid, PrimaryEmail:string, SecondaryEmail:string, modifiedon:datetime)
 
