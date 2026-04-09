@@ -60,7 +60,6 @@ datatable(ItemKind:string) [
     "Eventstream",
     "cosmosdb", // no event
     "azuredb", // no event
-    "MirroredAzureDatabricksCatalog", // to remove
     "SqlAnalyticsEndpoint",
     "MountedDataFactory",
     "DataFlowGen1" // no event
