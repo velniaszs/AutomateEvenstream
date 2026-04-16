@@ -68,3 +68,56 @@ datatable(ItemKind:string) [
 
 .set-or-replace DeleteLastRunTime <| 
 print LastRunTime = ago(4d)
+
+
+.create-merge table OAPEnabledAllowedItemKind (ItemKind:string, ModifiedAt:datetime)
+
+.set-or-replace OAPEnabledAllowedItemKind <|
+datatable(ItemKind:string) [
+    "Lakehouse", 
+    "Notebook", 
+    "SparkJobDefinition", 
+    "Environment",
+    "Warehouse", 
+    "DataFlow", 
+    "DataPipeline", 
+    "CopyJob",
+    "MirroredDatabase", 
+    "SQLEndpoint", 
+    "VariableLibrary", 
+    "SqlAnalyticsEndpoint",
+    "Experiment", // no events
+    "MlModel", // no events
+]
+| extend ModifiedAt = now()
+
+
+    let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+    let startTimeFilter = iff(isnull(lastRunParam), ago(100d), lastRunParam);
+    let ak = OAPEnabledAllowedItemKind;
+    let wl = WorkspaceLogs
+    | where ingestion_time() > startTimeFilter
+    | where ingestion_time() < todatetime("', variables('now'),'")
+    | extend IngestionTime = ingestion_time()
+    | where type == "Microsoft.Fabric.ItemCreateSucceeded"
+    | project WorkspaceName = data_workspaceName, data_workspaceId, wstime = ["time"], data_itemName, data_itemId, data_itemKind, type, IngestionTime, UserId = data_executingPrincipalId;
+    let aop =
+    DataverseWorkspace
+    | extend IngestionTime = ingestion_time()
+    | summarize arg_max(IngestionTime, *) by WorkspaceId
+    | where OAPActivity == "EnableWorkspaceOutboundAccessProtection"
+    | where IsMonitored == true
+    | project WorkspaceId, Activity= OAPActivity;
+    wl
+    | join kind = inner 
+        aop
+        on  $left.data_workspaceId == $right.WorkspaceId
+    | join kind = leftanti 
+        ak
+        on $left.data_itemKind == $right.ItemKind
+    | extend AlertStatus = "Initial"
+    | project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus, UserId
+    // 3. Filter out records that already exist in the destination table
+    | join kind=leftanti (
+        AlertLogs 
+    ) on WorkspaceId, data_itemId
