@@ -71,8 +71,15 @@ foreach ($wsId in $WorkspaceIds) {
                 $attempt++
                 $statusCode = $_.Exception.Response.StatusCode.value__
                 if ($statusCode -eq 429) {
-                    $retryAfter = 10  # fallback seconds
-                    try { $retryAfter = [int]$_.Exception.Response.Headers["Retry-After"] } catch {}
+                    $retryAfter    = 10  # fallback seconds
+                    $rawRetryAfter = $null
+                    try { $rawRetryAfter = $_.Exception.Response.Headers.Get("Retry-After") } catch {}
+                    Write-Host "  [429] Retry-After raw value: '$rawRetryAfter'"
+                    if ($rawRetryAfter -ne $null -and [int]::TryParse($rawRetryAfter.Trim(), [ref]$retryAfter)) {
+                        Write-Host "  [429] Parsed Retry-After: ${retryAfter}s"
+                    } else {
+                        Write-Host "  [429] Could not parse Retry-After -- using fallback ${retryAfter}s"
+                    }
                     Write-Host "  [429] Throttled -- waiting ${retryAfter}s (attempt $attempt/$maxRetries)..."
                     Start-Sleep -Seconds $retryAfter
                 }
