@@ -1,19 +1,16 @@
-$TenantId          = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-$ClientId          = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-$ClientSecret      = "your-client-secret"
+﻿$TenantId          = ""
+$ClientId          = ""
+$ClientSecret      = ""
 
 # 4 workspace IDs to target
 $WorkspaceIds      = @(
-    "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    ""
 )
 
 # Total items to create per workspace
 $ItemsPerWorkspace = 500
 
-# Item type — Notebook is instant (no provisioning delay)
+# Item type -- Notebook is instant (no provisioning delay)
 # Other fast options: Lakehouse, Warehouse (slower to provision)
 $ItemType          = "Notebook"
 
@@ -22,7 +19,7 @@ $NamePrefix        = "stress-test"
 
 $ErrorActionPreference = "Stop"
 
-# ── Auth ────────────────────────────────────────────────────────────────────
+# --- Auth ---
 $tokenUrl = "https://login.microsoftonline.com/$TenantId/oauth2/v2.0/token"
 $tokenBody = @{
     grant_type    = "client_credentials"
@@ -37,13 +34,13 @@ $headers = @{
     "Content-Type"  = "application/json"
 }
 
-# ── Generate ────────────────────────────────────────────────────────────────
+
 $totalCreated = 0
 $totalFailed  = 0
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 
 foreach ($wsId in $WorkspaceIds) {
-    Write-Host "`n── Workspace $wsId ── ($ItemsPerWorkspace items of type '$ItemType')"
+    Write-Host "`n-- Workspace $wsId -- ($ItemsPerWorkspace items of type '$ItemType')"
     $wsCreated = 0
     $wsFailed  = 0
 
@@ -76,18 +73,18 @@ foreach ($wsId in $WorkspaceIds) {
                 if ($statusCode -eq 429) {
                     $retryAfter = 10  # fallback seconds
                     try { $retryAfter = [int]$_.Exception.Response.Headers["Retry-After"] } catch {}
-                    Write-Host "  [429] Throttled — waiting ${retryAfter}s (attempt $attempt/$maxRetries)..."
+                    Write-Host "  [429] Throttled -- waiting ${retryAfter}s (attempt $attempt/$maxRetries)..."
                     Start-Sleep -Seconds $retryAfter
                 }
                 elseif ($statusCode -eq 409) {
-                    # Name already exists — skip, no retry
+                    # Name already exists -- skip, no retry
                     $wsFailed++
                     $totalFailed++
-                    Write-Warning "  SKIP $name — already exists (HTTP 409)"
+                    Write-Warning "  SKIP $name -- already exists (HTTP 409)"
                     break
                 }
                 else {
-                    # Non-throttle error — no point retrying
+                    # Non-throttle error -- no point retrying
                     $wsFailed++
                     $totalFailed++
                     Write-Warning "  FAILED $name (HTTP $statusCode) : $_"
@@ -98,15 +95,16 @@ foreach ($wsId in $WorkspaceIds) {
         if (-not $success -and $attempt -ge $maxRetries) {
             $wsFailed++
             $totalFailed++
-            Write-Warning "  FAILED $name — exhausted $maxRetries retries"
+            Write-Warning "  FAILED $name --- exhausted $maxRetries retries"
         }
     }
 
-    Write-Host "  [$wsId] Done — created: $wsCreated  failed: $wsFailed"
+    Write-Host "  [$wsId] Done -- created: $wsCreated  failed: $wsFailed"
 }
 
 $sw.Stop()
-Write-Host "`n══════════════════════════════════"
-Write-Host "Total created : $totalCreated"
-Write-Host "Total failed  : $totalFailed"
-Write-Host "Elapsed       : $([math]::Round($sw.Elapsed.TotalMinutes,1)) min"
+Write-Host ""
+Write-Host "======================================"
+Write-Host ("Total created : " + $totalCreated)
+Write-Host ("Total failed  : " + $totalFailed)
+Write-Host ("Elapsed       : " + [math]::Round($sw.Elapsed.TotalMinutes, 1) + " min")
