@@ -73,9 +73,12 @@ foreach ($wsId in $WorkspaceIds) {
                 if ($statusCode -eq 429) {
                     $retryAfter    = 10  # fallback seconds
                     $rawRetryAfter = $null
-                    try { $rawRetryAfter = $_.Exception.Response.Headers.Get("Retry-After") } catch {}
+                    try {
+                        $rawRetryAfter = $_.Exception.Response.Headers.GetValues("Retry-After") |
+                            Select-Object -First 1
+                    } catch {}
                     Write-Host "  [429] Retry-After raw value: '$rawRetryAfter'"
-                    if ($rawRetryAfter -ne $null -and [int]::TryParse($rawRetryAfter.Trim(), [ref]$retryAfter)) {
+                    if ($rawRetryAfter -and [int]::TryParse($rawRetryAfter.Trim(), [ref]$retryAfter)) {
                         Write-Host "  [429] Parsed Retry-After: ${retryAfter}s"
                     } else {
                         Write-Host "  [429] Could not parse Retry-After -- using fallback ${retryAfter}s"

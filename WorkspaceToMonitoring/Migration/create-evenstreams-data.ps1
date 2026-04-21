@@ -14,8 +14,10 @@ $jsonFilePath = Join-Path $PSScriptRoot "input\clean_evenstream.json"
 $capacityDetailsPath = Join-Path $PSScriptRoot "input\workspace_capacity_details.json"
 $outputFolder = Join-Path $PSScriptRoot "Output"
 
-# Create Output folder if it doesn't exist
-if (-not (Test-Path $outputFolder)) {
+# Create Output folder if it doesn't exist, or clear it if it does
+if (Test-Path $outputFolder) {
+    Remove-Item -Path "$outputFolder\*" -Recurse -Force
+} else {
     New-Item -ItemType Directory -Path $outputFolder | Out-Null
 }
 

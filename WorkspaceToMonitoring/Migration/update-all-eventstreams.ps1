@@ -43,22 +43,31 @@ catch {
 
 Write-Host "Found $($eventstreams.Count) eventstreams."
 
-# Iterate through eventstreams and update if matching JSON exists
-foreach ($es in $eventstreams) {
-    $esName = $es.displayName
-    $esId = $es.id
-    
-    $jsonFilePath = Join-Path $outputFolder "$esName.json"
+# Iterate through output JSON files and update if a matching eventstream exists
+$jsonFiles = Get-ChildItem -Path $outputFolder -Filter "*.json"
+Write-Host "Found $($jsonFiles.Count) definition files in Output folder."
 
-    if (Test-Path $jsonFilePath) {
-        Write-Host "Found matching definition file for '$esName' ($jsonFilePath). Updating..."
+foreach ($jsonFile in $jsonFiles) {
+    $baseName = $jsonFile.BaseName
+    $jsonFilePath = $jsonFile.FullName
+
+    $matchingEs = $eventstreams | Where-Object { $_.displayName -eq $baseName } | Select-Object -First 1
+
+    if ($matchingEs) {
+        $esId = $matchingEs.id
+        Write-Host "Found matching eventstream for '$baseName' (id: $esId). Updating..."
         try {
             & $updateScript -WorkspaceId $WorkspaceId -EventstreamId $esId -AuthToken $AuthToken -DefinitionFile $jsonFilePath
+
+            $definition = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
+            $sourceWorkspaceIds = $definition.sources | ForEach-Object { $_.properties.workspaceId } | Where-Object { $_ }
+            Write-Host "  Source workspaceIds in '$baseName':"
+            Write-Host $sourceWorkspaceIds #HERE ARE ALL WORKSPACES IN one capacity(evenstream), that successfully Loaded
         }
         catch {
-            Write-Error "Failed to update '$esName'. Error: $_"
+            Write-Error "Failed to update '$baseName'. Error: $_"
         }
     } else {
-        Write-Host "No definition file found for '$esName' in Output folder. Skipping."
+        Write-Host "No matching eventstream found for '$baseName'. Skipping."
     }
 }
