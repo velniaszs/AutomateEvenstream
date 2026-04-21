@@ -11,7 +11,15 @@ $ErrorActionPreference = "Stop"
 
 # Paths
 $outputFolder = Join-Path $PSScriptRoot "Output"
+$processedFolder = Join-Path $PSScriptRoot "Processed"
 $updateScript = Join-Path $PSScriptRoot "..\update-eventstream.ps1"
+
+# Create/clear Processed folder
+if (Test-Path $processedFolder) {
+    Remove-Item -Path "$processedFolder\*" -Recurse -Force
+} else {
+    New-Item -ItemType Directory -Path $processedFolder | Out-Null
+}
 
 # Validate paths
 if (-not (Test-Path $outputFolder)) {
@@ -47,6 +55,8 @@ Write-Host "Found $($eventstreams.Count) eventstreams."
 $jsonFiles = Get-ChildItem -Path $outputFolder -Filter "*.json"
 Write-Host "Found $($jsonFiles.Count) definition files in Output folder."
 
+$processedFilePath = Join-Path $processedFolder "processed_workspaces.json"
+
 foreach ($jsonFile in $jsonFiles) {
     $baseName = $jsonFile.BaseName
     $jsonFilePath = $jsonFile.FullName
@@ -61,8 +71,27 @@ foreach ($jsonFile in $jsonFiles) {
 
             $definition = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
             $sourceWorkspaceIds = $definition.sources | ForEach-Object { $_.properties.workspaceId } | Where-Object { $_ }
-            Write-Host "  Source workspaceIds in '$baseName':"
-            Write-Host $sourceWorkspaceIds #HERE ARE ALL WORKSPACES IN one capacity(evenstream), that successfully Loaded
+            
+            # Read existing processed workspaces or create empty array
+            $processedWorkspaces = @()
+            if (Test-Path $processedFilePath) {
+                $processedWorkspaces = Get-Content -Path $processedFilePath -Raw | ConvertFrom-Json
+                if ($processedWorkspaces -isnot [Array]) {
+                    $processedWorkspaces = @($processedWorkspaces)
+                }
+            }
+            
+            # Add current eventstream's workspaces as objects with workspaceId property
+            foreach ($wsId in $sourceWorkspaceIds) {
+                $processedWorkspaces += [PSCustomObject]@{
+                    workspaceId = $wsId
+                }
+            }
+            
+            # Save back to file immediately (ensure it's always an array)
+            @($processedWorkspaces) | ConvertTo-Json -Depth 10 | Set-Content -Path $processedFilePath
+            
+            Write-Host "  Processed $($sourceWorkspaceIds.Count) workspace(s) for '$baseName'"
         }
         catch {
             Write-Error "Failed to update '$baseName'. Error: $_"
@@ -71,3 +100,5 @@ foreach ($jsonFile in $jsonFiles) {
         Write-Host "No matching eventstream found for '$baseName'. Skipping."
     }
 }
+
+Write-Host "`nProcessing complete. Results saved to: $processedFilePath"
