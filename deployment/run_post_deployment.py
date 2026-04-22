@@ -33,9 +33,6 @@ def main():
 
     result = executor.run_notebook_synchronous(
         notebook_name=args.notebook_name,
-        parameters={
-            "environment": args.environment
-        },
         timeout_seconds=1800
     )
 
