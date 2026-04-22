@@ -123,13 +123,13 @@ class NotebookExecutor:
         try:
             target_workspace_id = workspace_id or self.workspace_id
 
-            print(f"🚀 Triggering notebook execution: {notebook_name}")
+            print(f" Triggering notebook execution: {notebook_name}")
             if parameters:
-                print(f"📝 Parameters: {parameters}")
+                print(f" Parameters: {parameters}")
 
             # Get notebook ID
             notebook_id = self._get_notebook_id(notebook_name, target_workspace_id)
-            print(f"📘 Notebook ID: {notebook_id}")
+            print(f" Notebook ID: {notebook_id}")
 
             # Build execution payload
             execution_payload = {}
@@ -161,11 +161,11 @@ class NotebookExecutor:
                     except Exception:
                         pass
 
-                print("✅ Notebook execution triggered successfully")
+                print(" Notebook execution triggered successfully")
                 if job_id != "Unknown":
-                    print(f"🆔 Job ID: {job_id}")
+                    print(f" Job ID: {job_id}")
                 else:
-                    print("ℹ️ Job accepted - check notebook for execution status")
+                    print(" Job accepted - check notebook for execution status")
 
                 return {
                     "success": True,
@@ -177,11 +177,11 @@ class NotebookExecutor:
                 }
 
             error_msg = f"Failed to trigger notebook execution: {response.status_code} - {response.text}"
-            print(f"❌ {error_msg}")
+            print(f" {error_msg}")
             raise Exception(error_msg)
 
         except Exception as e:
-            print(f"❌ Error executing notebook: {e}")
+            print(f" Error executing notebook: {e}")
             raise
 
     def run_notebook_synchronous(
@@ -207,7 +207,7 @@ class NotebookExecutor:
             Exception: If notebook execution fails or times out
         """
         try:
-            print(f"🚀 Running notebook synchronously: {notebook_name}")
+            print(f" Running notebook synchronously: {notebook_name}")
 
             # Trigger notebook execution
             result = self.run_notebook(
@@ -228,7 +228,7 @@ class NotebookExecutor:
             poll_interval = 5  # seconds
             elapsed_time = 0
 
-            print(f"\n⏳ Monitoring job status (polling every {poll_interval} seconds)...")
+            print(f"\n Monitoring job status (polling every {poll_interval} seconds)...")
 
             while elapsed_time < timeout_seconds:
                 time.sleep(poll_interval)
@@ -238,26 +238,26 @@ class NotebookExecutor:
                     status_data = self.get_job_status(notebook_id=notebook_id, job_id=job_id)
                     current_status = status_data.get("status", "Unknown")
 
-                    print(f"📊 Status: {current_status} (elapsed: {elapsed_time}s)")
+                    print(f" Status: {current_status} (elapsed: {elapsed_time}s)")
 
                     # Check if job reached terminal status
                     if current_status in terminal_statuses:
-                        print(f"\n🎯 Job reached terminal status: {current_status}")
+                        print(f"\n Job reached terminal status: {current_status}")
 
                         # Display additional details
                         if "startTimeUtc" in status_data:
-                            print(f"🕒 Start Time: {status_data['startTimeUtc']}")
+                            print(f" Start Time: {status_data['startTimeUtc']}")
 
                         # Show end time or current time if not available
                         end_time = status_data.get("endTimeUtc")
                         if end_time:
-                            print(f"🕒 End Time: {end_time}")
+                            print(f" End Time: {end_time}")
                         else:
                             current_time = datetime.utcnow().isoformat() + "Z"
-                            print(f"🕒 End Time: {current_time} (estimated)")
+                            print(f" End Time: {current_time} (estimated)")
 
                         if current_status == "Completed":
-                            print("✅ Notebook execution completed successfully!")
+                            print(" Notebook execution completed successfully!")
                             return {
                                 "success": True,
                                 "status": current_status,
@@ -268,7 +268,7 @@ class NotebookExecutor:
 
                         # Failed, Cancelled, or Canceled
                         failure_reason = status_data.get("failureReason", "No reason provided")
-                        print(f"❌ Failure Reason: {failure_reason}")
+                        print(f" Failure Reason: {failure_reason}")
                         raise Exception(f"Notebook execution {current_status.lower()}: {failure_reason}")
 
                 except Exception as status_error:
@@ -276,7 +276,7 @@ class NotebookExecutor:
                         # Re-raise execution failures
                         raise
                     # Log but continue on status check errors
-                    print(f"⚠️ Error checking status: {status_error}")
+                    print(f" Error checking status: {status_error}")
                     continue
 
             # Timeout reached
@@ -286,7 +286,7 @@ class NotebookExecutor:
             )
 
         except Exception as e:
-            print(f"❌ Error running notebook synchronously: {e}")
+            print(f" Error running notebook synchronously: {e}")
             raise
 
     def get_job_status(
@@ -319,5 +319,5 @@ class NotebookExecutor:
             raise Exception(f"Failed to get job status: {response.status_code} - {response.text}")
 
         except Exception as e:
-            print(f"❌ Error getting job status: {e}")
+            print(f" Error getting job status: {e}")
             raise
