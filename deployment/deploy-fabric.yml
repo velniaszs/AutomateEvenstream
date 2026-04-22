@@ -70,7 +70,7 @@ steps:
 
 - script: |
     python -m pip install --upgrade pip
-    pip install fabric-cicd azure-identity semantic-link-labs
+    pip install fabric-cicd azure-identity requests
   displayName: 'Install Python packages'
 
 # 4. Run fabric-cicd deployment script

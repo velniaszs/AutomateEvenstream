@@ -3,6 +3,7 @@ Notebook Executor Module - Adapted from fabric-launcher for local execution
 
 Original: https://github.com/microsoft/fabric-launcher/blob/main/fabric_launcher/notebook_executor.py
 Adapted to work locally with Service Principal authentication instead of notebookutils.
+Uses requests + azure-identity directly (no sempy/PySpark dependency).
 
 This module provides functionality to trigger execution of Fabric notebooks.
 """
@@ -12,6 +13,29 @@ __all__ = ["NotebookExecutor"]
 from typing import Any
 import time
 from datetime import datetime
+
+import requests
+from azure.identity import ClientSecretCredential, DefaultAzureCredential
+
+_FABRIC_API_BASE = "https://api.fabric.microsoft.com/"
+_FABRIC_SCOPE = "https://api.fabric.microsoft.com/.default"
+
+
+class _FabricClient:
+    """Minimal Fabric REST client using requests + azure-identity."""
+
+    def __init__(self, credential):
+        self._credential = credential
+
+    def _headers(self) -> dict:
+        token = self._credential.get_token(_FABRIC_SCOPE).token
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def get(self, url: str):
+        return requests.get(_FABRIC_API_BASE + url, headers=self._headers())
+
+    def post(self, url: str, json=None):
+        return requests.post(_FABRIC_API_BASE + url, headers=self._headers(), json=json)
 
 
 class NotebookExecutor:
@@ -32,27 +56,19 @@ class NotebookExecutor:
             client_id: Service Principal client ID
             client_secret: Service Principal client secret
         """
-        try:
-            import sempy.fabric as fabric
-        except ImportError:
-            raise ImportError(
-                "semantic-link-labs package is required. Install with: pip install semantic-link-labs"
-            )
-
         self.workspace_id = workspace_id
-        
-        # Setup authentication for local execution
+
         if tenant_id and client_id and client_secret:
-            from azure.identity import ClientSecretCredential
             credential = ClientSecretCredential(
                 tenant_id=tenant_id,
                 client_id=client_id,
                 client_secret=client_secret
             )
-            self.client = fabric.FabricRestClient(credential=credential)
         else:
-            # Fallback to default authentication (interactive login)
-            self.client = fabric.FabricRestClient()
+            # Fallback to default authentication (managed identity / interactive login)
+            credential = DefaultAzureCredential()
+
+        self.client = _FabricClient(credential)
 
     def _get_notebook_id(self, notebook_name: str, workspace_id: str = None) -> str:
         """
