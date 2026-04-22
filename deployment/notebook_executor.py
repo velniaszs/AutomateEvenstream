@@ -217,7 +217,7 @@ class NotebookExecutor:
 
             # Terminal statuses per API docs (ItemJobStatus enum)
             terminal_statuses = ["Completed", "Failed", "Cancelled", "Deduped"]
-            default_poll_interval = 60  # seconds, fallback if no Retry-After header
+            default_poll_interval = 5  # seconds, fallback if no Retry-After header
             elapsed_time = 0
 
             print("Monitoring job status...")
