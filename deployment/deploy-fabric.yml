@@ -93,50 +93,14 @@ steps:
 - task: PythonScript@0
   displayName: 'Execute Post-Deployment Notebook: PostDeployment'
   inputs:
-    scriptSource: 'inline'
-    script: |
-      import sys
-      sys.path.insert(0, '$(Build.SourcesDirectory)/AutomateEvenstream/deployment')
-      
-      from notebook_executor import NotebookExecutor
-      
-      # Configuration
-      WORKSPACE_ID = "$(workspaceId)"
-      TENANT_ID = "$(tenantId)"
-      CLIENT_ID = "$(clientId)"
-      CLIENT_SECRET = "$(fabric-monit-secret)"
-      NOTEBOOK_NAME = "PostDeployment"
-      ENVIRONMENT = "${{ parameters.environment }}"
-      
-      print(f"Executing post-deployment notebook: PostDeployment")
-      print(f"   Environment: {ENVIRONMENT}")
-      print(f"   Workspace: {WORKSPACE_ID}")
-      
-      # Create executor
-      executor = NotebookExecutor(
-          workspace_id=WORKSPACE_ID,
-          tenant_id=TENANT_ID,
-          client_id=CLIENT_ID,
-          client_secret=CLIENT_SECRET
-      )
-      
-      # Run notebook synchronously
-      result = executor.run_notebook_synchronous(
-          notebook_name=NOTEBOOK_NAME,
-          parameters={
-              "environment": ENVIRONMENT
-          },
-          timeout_seconds=1800
-      )
-      
-      # Check result
-      if result.get("status") == "Completed":
-          print("Post-deployment notebook completed successfully.")
-          sys.exit(0)
-      else:
-          print(f"Post-deployment notebook failed: {result.get('status')}")
-          if "error" in result:
-              print(f"   Error: {result['error']}")
-          sys.exit(1)
+    scriptSource: 'filePath'
+    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/run_post_deployment.py'
+    arguments: >
+      --workspace-id $(workspaceId)
+      --tenant-id $(tenantId)
+      --client-id $(clientId)
+      --environment ${{ parameters.environment }}
+      --notebook-name PostDeployment
   env:
     PYTHONUNBUFFERED: '1'
+    CLIENT_SECRET: $(fabric-monit-secret)
