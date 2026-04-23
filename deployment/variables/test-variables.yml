@@ -18,8 +18,8 @@ variables:
     value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
 
   - name: keyVaultName
-    value: 'ab-fabric-automation-akv-test'
+    value: 'ab-fabric-automation-akv'
 
   # Name of the Key Vault secret holding the SP client secret
   - name: spClientSecretName
-    value: 'fabric-monit-secret-test'
+    value: 'fabric-monit-secret'
