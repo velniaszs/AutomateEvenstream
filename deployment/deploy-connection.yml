@@ -13,11 +13,11 @@ parameters:
 # Load environment-specific variable file at compile time
 variables:
   - ${{ if eq(parameters.environment, 'DEV') }}:
-    - template: variables/dev.yml
+    - template: variables/dev-variables.yml
   - ${{ if eq(parameters.environment, 'TEST') }}:
-    - template: variables/test.yml
+    - template: variables/test-variables.yml
   - ${{ if eq(parameters.environment, 'PROD') }}:
-    - template: variables/prod.yml
+    - template: variables/prod-variables.yml
 
 stages:
 - stage: DeployConnections
@@ -44,7 +44,7 @@ stages:
             inputs:
               azureSubscription: '${{ variables.azureServiceConnection }}'
               KeyVaultName: '$(keyVaultName)'
-              SecretsFilter: '$(saPasswordSecretName),$(connSaPasswordSecretName),$(spClientSecretName)'
+              SecretsFilter: '$(saPasswordSecretName),$(connSaPasswordSecretName),$(connSpClientSecretName)'
               RunAsPreJob: false
 
           # 3. Install Python
@@ -65,7 +65,7 @@ stages:
             displayName: 'Create or Update Connections'
             inputs:
               scriptSource: 'filePath'
-              scriptPath: '$(Build.SourcesDirectory)/connections/create_connection_sa.py'
+              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/create_connection_sa.py'
               arguments: >
                 --client-id $(ropcClientId)
                 --tenant-id $(tenantId)
@@ -79,4 +79,4 @@ stages:
               PYTHONUNBUFFERED: '1'
               SA_PASSWORD:      ${{ format('$({0})', variables.saPasswordSecretName) }}
               CONN_SA_PASSWORD: ${{ format('$({0})', variables.connSaPasswordSecretName) }}
-              SP_CLIENT_SECRET: ${{ format('$({0})', variables.spClientSecretName) }}
+              SP_CLIENT_SECRET: ${{ format('$({0})', variables.connSpClientSecretName) }}
