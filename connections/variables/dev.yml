@@ -1,0 +1,41 @@
+variables:
+  - name: tenantId
+    value: '9e929790-272d-4977-a2ab-301443c11ece'
+
+  - name: azureServiceConnection
+    value: 'devops-service-connection-dev'
+
+  - name: keyVaultName
+    value: 'ab-fabric-automation-akv-dev'
+
+  # ROPC app registration (public client, no secret)
+  - name: ropcClientId
+    value: ''  # TODO: ROPC-enabled app registration client ID
+
+  # Service account used to call the Fabric API (caller identity)
+  - name: saUsername
+    value: 'user3@MngEnvMCAP985281.onmicrosoft.com'
+
+  # Service account whose credentials are stored in the Outlook connection
+  - name: connSaUsername
+    value: 'user3@MngEnvMCAP985281.onmicrosoft.com'
+
+  # Service Principal whose credentials are stored in the Notebook connection
+  - name: spClientId
+    value: ''  # TODO: SP client ID for Notebook connection
+
+  - name: outlookDisplayName
+    value: 'DEV Detect Correct Outlook Conn'
+
+  - name: notebookDisplayName
+    value: 'DEV Detect Correct Notebook Conn'
+
+  # Key Vault secret names (may differ per environment)
+  - name: saPasswordSecretName
+    value: 'sa-password-dev'
+
+  - name: connSaPasswordSecretName
+    value: 'conn-sa-password-dev'
+
+  - name: spClientSecretName
+    value: 'sp-client-secret-dev'

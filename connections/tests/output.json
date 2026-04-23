@@ -1,0 +1,18 @@
+{
+  "allowConnectionUsageInGateway": true,
+  "allowUsageInUserControlledCode": false,
+  "id": "b2d3ab64-b6fb-4388-9162-02d087b4d870",
+  "displayName": "Notebook user3",
+  "connectivityType": "ShareableCloud",
+  "connectionDetails": {
+    "path": "Notebook",
+    "type": "Notebook"
+  },
+  "privacyLevel": "Organizational",
+  "credentialDetails": {
+    "credentialType": "ServicePrincipal",
+    "singleSignOnType": "None",
+    "connectionEncryption": "NotEncrypted",
+    "skipTestConnection": false
+  }
+}

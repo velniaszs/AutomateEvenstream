@@ -1,5 +1,7 @@
 """
-Create or Update Connection using Service Principal credentials
+Create or Update Connections using Service Principal credentials
+- MicrosoftOutlook connection (credentialType: ServicePrincipal)
+- Notebook connection (credentialType: ServicePrincipal)
 - Lists connections to check if one with the same display name already exists
 - If found: updates credentials (client ID / secret may have changed)
 - If not found: creates a new connection
@@ -16,10 +18,12 @@ from azure.identity import ClientSecretCredential
 TENANT_ID = "9e929790-272d-4977-a2ab-301443c11ece"
 
 # --- New connection settings ---
-DISPLAY_NAME = "TEST Detect Correct Outlook Conn"
+OUTLOOK_DISPLAY_NAME  = "TEST Detect Correct Outlook Conn"
+NOTEBOOK_DISPLAY_NAME = "TEST Detect Correct Notebook Conn"
 
-# Connection details (based on existing connection in output.json)
-CONNECTION_TYPE = "MicrosoftOutlook"
+# Connection types
+OUTLOOK_CONNECTION_TYPE  = "MicrosoftOutlook"
+NOTEBOOK_CONNECTION_TYPE = "Notebook"
 
 # Service Principal credentials to store in the connection
 SP_TENANT_ID    = "9e929790-272d-4977-a2ab-301443c11ece"
@@ -63,16 +67,16 @@ def list_connections(headers: dict) -> list:
     return results
 
 
-def create_connection(headers: dict) -> dict:
+def create_connection(display_name: str, connection_type: str, headers: dict) -> dict:
     payload = {
         "connectivityType": "ShareableCloud",
-        "displayName": DISPLAY_NAME,
+        "displayName": display_name,
         "connectionDetails": {
-            "type": CONNECTION_TYPE,
-            "creationMethod": "MicrosoftOutlook.Actions",
+            "type": connection_type,
+            "creationMethod": f"{connection_type}.Actions",
             "parameters": [],
         },
-        "privacyLevel": "None",
+        "privacyLevel": "Organizational" if connection_type == NOTEBOOK_CONNECTION_TYPE else "None",
         "credentialDetails": {
             "singleSignOnType": "None",
             "connectionEncryption": "NotEncrypted",
@@ -84,7 +88,7 @@ def create_connection(headers: dict) -> dict:
                 "servicePrincipalSecret": SP_CLIENT_SECRET,
             }
         },
-        "allowConnectionUsageInGateway": False,
+        "allowConnectionUsageInGateway": connection_type == NOTEBOOK_CONNECTION_TYPE,
         "allowUsageInUserControlledCode": False,
     }
 
@@ -126,21 +130,28 @@ def update_connection(connection_id: str, headers: dict) -> dict:
     )
 
 
+def upsert_connection(display_name: str, connection_type: str, connections: list, headers: dict) -> None:
+    match = next((c for c in connections if c.get("displayName") == display_name), None)
+    if match:
+        print(f"Connection '{display_name}' already exists (id: {match['id']}). Updating credentials...")
+        result = update_connection(match["id"], headers)
+        print(f"Updated. Connection ID: {result['id']}")
+    else:
+        print(f"Connection '{display_name}' not found. Creating...")
+        result = create_connection(display_name, connection_type, headers)
+        print(f"Created. Connection ID: {result['id']}")
+    print(json.dumps(result, indent=2))
+
+
 if __name__ == "__main__":
     headers = get_headers()
 
-    print(f"Listing connections...")
+    print("Listing connections...")
     connections = list_connections(headers)
-    match = next((c for c in connections if c.get("displayName") == DISPLAY_NAME), None)
 
-    if match:
-        print(f"Connection '{DISPLAY_NAME}' already exists (id: {match['id']}). Updating credentials...")
-        result = update_connection(match["id"], headers)
-        print("Updated:")
-    else:
-        print(f"Connection '{DISPLAY_NAME}' not found. Creating...")
-        result = create_connection(headers)
-        print("Created:")
+    print("\n--- Outlook Connection ---")
+    upsert_connection(OUTLOOK_DISPLAY_NAME, OUTLOOK_CONNECTION_TYPE, connections, headers)
 
-    print(json.dumps(result, indent=2))
+    print("\n--- Notebook Connection ---")
+    upsert_connection(NOTEBOOK_DISPLAY_NAME, NOTEBOOK_CONNECTION_TYPE, connections, headers)
 

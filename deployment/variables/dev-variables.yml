@@ -1,9 +1,25 @@
 variables:
   - name: environment
     value: 'DEV'
-  
+
   - name: workspaceId
     value: 'your-dev-workspace-id'
-  
+
   - name: workspaceName
     value: 'Fabric Dev Workspace'
+
+  - name: azureServiceConnection
+    value: 'devops-service-connection-dev'
+
+  - name: tenantId
+    value: '9e929790-272d-4977-a2ab-301443c11ece'
+
+  - name: clientId
+    value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
+
+  - name: keyVaultName
+    value: 'ab-fabric-automation-akv-dev'
+
+  # Name of the Key Vault secret holding the SP client secret
+  - name: spClientSecretName
+    value: 'fabric-monit-secret-dev'

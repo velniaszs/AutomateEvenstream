@@ -1,0 +1,82 @@
+trigger: none
+
+parameters:
+  - name: environment
+    displayName: 'Target Environment'
+    type: string
+    default: 'DEV'
+    values:
+      - DEV
+      - TEST
+      - PROD
+
+# Load environment-specific variable file at compile time
+variables:
+  - ${{ if eq(parameters.environment, 'DEV') }}:
+    - template: variables/dev.yml
+  - ${{ if eq(parameters.environment, 'TEST') }}:
+    - template: variables/test.yml
+  - ${{ if eq(parameters.environment, 'PROD') }}:
+    - template: variables/prod.yml
+
+stages:
+- stage: DeployConnections
+  displayName: 'Deploy Connections [${{ parameters.environment }}]'
+  jobs:
+  - deployment: CreateConnections
+    displayName: 'Create or Update Connections'
+    # Azure DevOps environment — configure approvals/gates on the environment itself
+    environment: 'connections-${{ lower(parameters.environment) }}'
+    pool:
+      vmImage: 'windows-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # 1. Checkout repository
+          - checkout: self
+            displayName: 'Checkout repository'
+
+          # 2. Retrieve secrets from Azure Key Vault
+          #    Secret names come from the variable file so they can differ per environment
+          - task: AzureKeyVault@2
+            displayName: 'Get Secrets from Key Vault'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              KeyVaultName: '$(keyVaultName)'
+              SecretsFilter: '$(saPasswordSecretName),$(connSaPasswordSecretName),$(spClientSecretName)'
+              RunAsPreJob: false
+
+          # 3. Install Python
+          - task: UsePythonVersion@0
+            displayName: 'Use Python 3.12'
+            inputs:
+              versionSpec: '3.12'
+              addToPath: true
+
+          # 4. Install dependencies
+          - script: |
+              python -m pip install --upgrade pip
+              pip install azure-identity requests
+            displayName: 'Install Python packages'
+
+          # 5. Run the connection script
+          - task: PythonScript@0
+            displayName: 'Create or Update Connections'
+            inputs:
+              scriptSource: 'filePath'
+              scriptPath: '$(Build.SourcesDirectory)/connections/create_connection_sa.py'
+              arguments: >
+                --client-id $(ropcClientId)
+                --tenant-id $(tenantId)
+                --sa-username $(saUsername)
+                --conn-sa-username $(connSaUsername)
+                --sp-client-id $(spClientId)
+                --sp-tenant-id $(tenantId)
+                --outlook-display-name "$(outlookDisplayName)"
+                --notebook-display-name "$(notebookDisplayName)"
+            env:
+              PYTHONUNBUFFERED: '1'
+              SA_PASSWORD:      ${{ format('$({0})', variables.saPasswordSecretName) }}
+              CONN_SA_PASSWORD: ${{ format('$({0})', variables.connSaPasswordSecretName) }}
+              SP_CLIENT_SECRET: ${{ format('$({0})', variables.spClientSecretName) }}

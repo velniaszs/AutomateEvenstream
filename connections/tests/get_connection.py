@@ -8,7 +8,7 @@ import requests
 from azure.identity import InteractiveBrowserCredential
 
 # --- Configuration ---
-CONNECTION_ID = "371bdff8-1e2c-4a6a-9836-4494786f0b3e"
+CONNECTION_ID = "b2d3ab64-b6fb-4388-9162-02d087b4d870"
 # ---------------------
 
 _FABRIC_API_BASE = "https://api.fabric.microsoft.com/"
