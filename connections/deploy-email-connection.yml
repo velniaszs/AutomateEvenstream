@@ -1,0 +1,71 @@
+trigger: none
+
+parameters:
+  - name: environment
+    displayName: 'Target Environment'
+    type: string
+    default: 'DEV'
+    values:
+      - DEV
+      - TEST
+      - PROD
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  - name: tenantId
+    value: '9e929790-272d-4977-a2ab-301443c11ece'
+
+  # App registration client ID for ROPC flow (public client, no secret required)
+  - name: ropcClientId
+    value: ''  # TODO: replace with app registration that has public client flows enabled
+
+  - name: azureServiceConnection
+    value: 'devops-service-connection'
+
+  - name: saUsername
+    value: 'user3@MngEnvMCAP985281.onmicrosoft.com'  # TODO: replace with actual service account UPN
+
+  - name: connSaUsername
+    value: 'user3@MngEnvMCAP985281.onmicrosoft.com'  # TODO: replace with actual mailbox UPN
+
+steps:
+# 1. Checkout repository
+- checkout: self
+  displayName: 'Checkout repository'
+
+# 2. Retrieve secrets from Azure Key Vault
+- task: AzureKeyVault@2
+  displayName: 'Get Secrets from Key Vault'
+  inputs:
+    azureSubscription: '$(azureServiceConnection)'
+    KeyVaultName: 'ab-fabric-automation-akv'
+    SecretsFilter: 'sa-password,conn-sa-password'
+    RunAsPreJob: false
+
+# 3. Install Python
+- task: UsePythonVersion@0
+  displayName: 'Use Python 3.12'
+  inputs:
+    versionSpec: '3.12'
+    addToPath: true
+
+# 4. Install dependencies
+- script: |
+    python -m pip install --upgrade pip
+    pip install azure-identity requests
+  displayName: 'Install Python packages'
+
+# 5. Run the connection script
+- task: PythonScript@0
+  displayName: 'Create or Update Email Connection'
+  inputs:
+    scriptSource: 'filePath'
+    scriptPath: '$(Build.SourcesDirectory)/connections/create_email_connection_sa.py'
+  env:
+    PYTHONUNBUFFERED: '1'
+    SA_USERNAME: $(saUsername)             # pipeline variable
+    SA_PASSWORD: $(sa-password)            # injected from Key Vault secret
+    CONN_SA_USERNAME: $(connSaUsername)    # pipeline variable
+    CONN_SA_PASSWORD: $(conn-sa-password)  # injected from Key Vault secret

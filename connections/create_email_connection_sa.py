@@ -13,6 +13,7 @@ excluded from Conditional Access policies that block ROPC flows.
 """
 
 import json
+import os
 import requests
 from azure.identity import UsernamePasswordCredential
 
@@ -21,20 +22,19 @@ CLIENT_ID = "b5c04c9c-0588-418f-8f60-2d83d38cb635"
 TENANT_ID = "9e929790-272d-4977-a2ab-301443c11ece"
 
 # --- Service account credentials (caller identity - used to authenticate to the API) ---
-SA_USERNAME = "user3@MngEnvMCAP985281.onmicrosoft.com"   #  replace with actual service account UPN
-SA_PASSWORD = ""                           #  supply via env var or Key Vault secret
+SA_USERNAME = os.environ["SA_USERNAME"]          # set via env var / Key Vault in pipeline
+SA_PASSWORD = os.environ["SA_PASSWORD"]          # set via env var / Key Vault in pipeline
 # --------------------------------------------------------------------------------------
 
 # --- New connection settings ---
 DISPLAY_NAME    = "TEST Detect Correct Outlook Conn"
 CONNECTION_TYPE = "MicrosoftOutlook"
 
-# --- OAuth2 tokens to store in the connection (for the mailbox the connection represents) ---
-# These are the credentials stored inside the Fabric connection, separate from the caller identity.
-# Obtain via OAuth2 authorization code flow for the target mailbox account.
-CONN_SA_USERNAME = "user3@MngEnvMCAP985281.onmicrosoft.com"  #  replace with actual mailbox UPN
-CONN_SA_PASSWORD = ""                              #  supply via env var or Key Vault secret
-# --------------------------------------------------------------------------------------------
+# --- Credentials stored inside the Fabric connection (the mailbox account) ---
+# These are separate from the caller identity above.
+CONN_SA_USERNAME = os.environ["CONN_SA_USERNAME"]  # set via env var / Key Vault in pipeline
+CONN_SA_PASSWORD = os.environ["CONN_SA_PASSWORD"]  # set via env var / Key Vault in pipeline
+# ------------------------------------------------------------------------------
 
 _FABRIC_API_BASE = "https://api.fabric.microsoft.com/"
 _FABRIC_SCOPE    = "https://api.fabric.microsoft.com/.default"
