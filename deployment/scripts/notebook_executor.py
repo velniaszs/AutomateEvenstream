@@ -35,7 +35,9 @@ class _FabricClient:
         return headers
 
     def get(self, url: str):
-        return requests.get(_FABRIC_API_BASE + url, headers=self._headers(with_content_type=False))
+        # Support both relative paths and absolute continuationUri values
+        full_url = url if url.startswith("https://") else _FABRIC_API_BASE + url
+        return requests.get(full_url, headers=self._headers(with_content_type=False))
 
     def post(self, url: str, json=None):
         return requests.post(_FABRIC_API_BASE + url, headers=self._headers(with_content_type=json is not None), json=json)
@@ -89,18 +91,20 @@ class NotebookExecutor:
         """
         target_workspace_id = workspace_id or self.workspace_id
 
-        # List notebooks in workspace
+        # List notebooks in workspace (paginate via continuationUri)
         url = f"v1/workspaces/{target_workspace_id}/notebooks"
-        response = self.client.get(url)
+        while url:
+            response = self.client.get(url)
 
-        if response.status_code != 200:
-            raise Exception(f"Failed to list notebooks: {response.status_code} - {response.text}")
+            if response.status_code != 200:
+                raise Exception(f"Failed to list notebooks: {response.status_code} - {response.text}")
 
-        notebooks = response.json().get("value", [])
+            data = response.json()
+            for notebook in data.get("value", []):
+                if notebook.get("displayName") == notebook_name:
+                    return notebook.get("id")
 
-        for notebook in notebooks:
-            if notebook.get("displayName") == notebook_name:
-                return notebook.get("id")
+            url = data.get("continuationUri")
 
         raise ValueError(f"Notebook '{notebook_name}' not found in workspace")
 
