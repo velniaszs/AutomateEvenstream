@@ -93,6 +93,7 @@ class NotebookExecutor:
 
         # List notebooks in workspace (paginate via continuationUri)
         url = f"v1/workspaces/{target_workspace_id}/notebooks"
+        found_names = []
         while url:
             response = self.client.get(url)
 
@@ -101,12 +102,13 @@ class NotebookExecutor:
 
             data = response.json()
             for notebook in data.get("value", []):
+                found_names.append(notebook.get("displayName"))
                 if notebook.get("displayName") == notebook_name:
                     return notebook.get("id")
 
             url = data.get("continuationUri")
 
-        raise ValueError(f"Notebook '{notebook_name}' not found in workspace")
+        raise ValueError(f"Notebook '{notebook_name}' not found in workspace. Available notebooks: {found_names}")
 
     def run_notebook(
         self,
