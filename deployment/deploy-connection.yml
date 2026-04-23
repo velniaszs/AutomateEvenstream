@@ -44,7 +44,7 @@ stages:
             inputs:
               azureSubscription: '${{ variables.azureServiceConnection }}'
               KeyVaultName: '$(keyVaultName)'
-              SecretsFilter: '$(connSpClientSecretName)'
+              SecretsFilter: '$(spClientSecretName)'
               RunAsPreJob: false
 
           # 3. Install Python
@@ -73,4 +73,4 @@ stages:
                 --notebook-display-name "$(notebookDisplayName)"
             env:
               PYTHONUNBUFFERED: '1'
-              CLIENT_SECRET: ${{ format('$({0})', variables.connSpClientSecretName) }}
+              CLIENT_SECRET: ${{ format('$({0})', variables.spClientSecretName) }}

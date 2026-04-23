@@ -53,6 +53,3 @@ variables:
 
   - name: connSaPasswordSecretName
     value: 'conn-sa-password-test'
-
-  - name: connSpClientSecretName
-    value: 'sp-client-secret-test'
