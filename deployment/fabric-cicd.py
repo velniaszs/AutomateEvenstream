@@ -15,7 +15,6 @@ from fabric_cicd import FabricWorkspace, publish_all_items, unpublish_all_orphan
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description='Deploy Fabric items using fabric-cicd')
 parser.add_argument('--client-id', required=True, help='Azure AD Application (Client) ID')
-parser.add_argument('--client-secret', required=True, help='Azure AD Application Client Secret')
 parser.add_argument('--tenant-id', required=True, help='Azure AD Tenant ID')
 parser.add_argument('--workspace-id', required=True, help='Fabric Workspace ID')
 parser.add_argument('--environment', default='DEV', help='Deployment environment (DEV, TEST, PROD)')
@@ -25,7 +24,7 @@ args = parser.parse_args()
 
 # Authentication credentials
 client_id = args.client_id
-client_secret = args.client_secret
+client_secret = os.environ["CLIENT_SECRET"]
 tenant_id = args.tenant_id
 token_credential = ClientSecretCredential(client_id=client_id, client_secret=client_secret, tenant_id=tenant_id)
 
