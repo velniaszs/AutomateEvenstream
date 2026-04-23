@@ -10,36 +10,32 @@ https://learn.microsoft.com/en-us/rest/api/fabric/core/connections/list-connecti
 https://learn.microsoft.com/en-us/rest/api/fabric/core/connections/update-connection
 """
 
+import argparse
 import json
+import os
 import requests
 from azure.identity import ClientSecretCredential
 
-# --- Configuration (caller identity - used to authenticate to the API) ---
-TENANT_ID = "9e929790-272d-4977-a2ab-301443c11ece"
-
-# --- New connection settings ---
-OUTLOOK_DISPLAY_NAME  = "TEST Detect Correct Outlook Conn"
-NOTEBOOK_DISPLAY_NAME = "TEST Detect Correct Notebook Conn"
-
-# Connection types
+_FABRIC_API_BASE      = "https://api.fabric.microsoft.com/"
+_FABRIC_SCOPE         = "https://api.fabric.microsoft.com/.default"
 OUTLOOK_CONNECTION_TYPE  = "MicrosoftOutlook"
 NOTEBOOK_CONNECTION_TYPE = "Notebook"
 
-# Service Principal credentials to store in the connection
-SP_TENANT_ID    = "9e929790-272d-4977-a2ab-301443c11ece"
-SP_CLIENT_ID    = "b5c04c9c-0588-418f-8f60-2d83d38cb635"
-SP_CLIENT_SECRET = ""
-# -------------------------------------------------------------------------
 
-_FABRIC_API_BASE = "https://api.fabric.microsoft.com/"
-_FABRIC_SCOPE    = "https://api.fabric.microsoft.com/.default"
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Create or update Fabric connections using a Service Principal.")
+    parser.add_argument("--tenant-id",             required=True, help="Azure AD tenant ID")
+    parser.add_argument("--client-id",             required=True, help="Service Principal client ID")
+    parser.add_argument("--outlook-display-name",  required=True, help="Display name of the Outlook Fabric connection")
+    parser.add_argument("--notebook-display-name", required=True, help="Display name of the Notebook Fabric connection")
+    return parser.parse_args()
 
 
-def get_headers() -> dict:
+def get_headers(args: argparse.Namespace) -> dict:
     credential = ClientSecretCredential(
-        tenant_id=SP_TENANT_ID,
-        client_id=SP_CLIENT_ID,
-        client_secret=SP_CLIENT_SECRET,
+        tenant_id=args.tenant_id,
+        client_id=args.client_id,
+        client_secret=os.environ["CLIENT_SECRET"],
     )
     token = credential.get_token(_FABRIC_SCOPE).token
     return {
@@ -67,7 +63,7 @@ def list_connections(headers: dict) -> list:
     return results
 
 
-def create_connection(display_name: str, connection_type: str, headers: dict) -> dict:
+def create_connection(display_name: str, connection_type: str, args: argparse.Namespace, headers: dict) -> dict:
     payload = {
         "connectivityType": "ShareableCloud",
         "displayName": display_name,
@@ -83,9 +79,9 @@ def create_connection(display_name: str, connection_type: str, headers: dict) ->
             "skipTestConnection": False,
             "credentials": {
                 "credentialType": "ServicePrincipal",
-                "tenantId": SP_TENANT_ID,
-                "servicePrincipalClientId": SP_CLIENT_ID,
-                "servicePrincipalSecret": SP_CLIENT_SECRET,
+                "tenantId": args.tenant_id,
+                "servicePrincipalClientId": args.client_id,
+                "servicePrincipalSecret": os.environ["CLIENT_SECRET"],
             }
         },
         "allowConnectionUsageInGateway": connection_type == NOTEBOOK_CONNECTION_TYPE,
@@ -103,7 +99,7 @@ def create_connection(display_name: str, connection_type: str, headers: dict) ->
     )
 
 
-def update_connection(connection_id: str, headers: dict) -> dict:
+def update_connection(connection_id: str, args: argparse.Namespace, headers: dict) -> dict:
     payload = {
         "connectivityType": "ShareableCloud",
         "credentialDetails": {
@@ -112,9 +108,9 @@ def update_connection(connection_id: str, headers: dict) -> dict:
             "skipTestConnection": False,
             "credentials": {
                 "credentialType": "ServicePrincipal",
-                "tenantId": SP_TENANT_ID,
-                "servicePrincipalClientId": SP_CLIENT_ID,
-                "servicePrincipalSecret": SP_CLIENT_SECRET,
+                "tenantId": args.tenant_id,
+                "servicePrincipalClientId": args.client_id,
+                "servicePrincipalSecret": os.environ["CLIENT_SECRET"],
             }
         },
     }
@@ -130,28 +126,29 @@ def update_connection(connection_id: str, headers: dict) -> dict:
     )
 
 
-def upsert_connection(display_name: str, connection_type: str, connections: list, headers: dict) -> None:
+def upsert_connection(display_name: str, connection_type: str, connections: list, args: argparse.Namespace, headers: dict) -> None:
     match = next((c for c in connections if c.get("displayName") == display_name), None)
     if match:
         print(f"Connection '{display_name}' already exists (id: {match['id']}). Updating credentials...")
-        result = update_connection(match["id"], headers)
+        result = update_connection(match["id"], args, headers)
         print(f"Updated. Connection ID: {result['id']}")
     else:
         print(f"Connection '{display_name}' not found. Creating...")
-        result = create_connection(display_name, connection_type, headers)
+        result = create_connection(display_name, connection_type, args, headers)
         print(f"Created. Connection ID: {result['id']}")
     print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
-    headers = get_headers()
+    args = parse_args()
+    headers = get_headers(args)
 
     print("Listing connections...")
     connections = list_connections(headers)
 
     print("\n--- Outlook Connection ---")
-    upsert_connection(OUTLOOK_DISPLAY_NAME, OUTLOOK_CONNECTION_TYPE, connections, headers)
+    upsert_connection(args.outlook_display_name, OUTLOOK_CONNECTION_TYPE, connections, args, headers)
 
     print("\n--- Notebook Connection ---")
-    upsert_connection(NOTEBOOK_DISPLAY_NAME, NOTEBOOK_CONNECTION_TYPE, connections, headers)
+    upsert_connection(args.notebook_display_name, NOTEBOOK_CONNECTION_TYPE, connections, args, headers)
 
