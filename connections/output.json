@@ -1,0 +1,18 @@
+{
+  "allowConnectionUsageInGateway": false,
+  "allowUsageInUserControlledCode": false,
+  "id": "371bdff8-1e2c-4a6a-9836-4494786f0b3e",
+  "displayName": "MicrosoftOutlook user3",
+  "connectivityType": "ShareableCloud",
+  "connectionDetails": {
+    "path": "MicrosoftOutlook",
+    "type": "MicrosoftOutlook"
+  },
+  "privacyLevel": "None",
+  "credentialDetails": {
+    "credentialType": "OAuth2",
+    "singleSignOnType": "None",
+    "connectionEncryption": "NotEncrypted",
+    "skipTestConnection": false
+  }
+}
