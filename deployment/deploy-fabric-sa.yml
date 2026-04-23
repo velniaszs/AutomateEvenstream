@@ -80,7 +80,7 @@ steps:
   displayName: 'Deploy Fabric Items using fabric-cicd'
   inputs:
     scriptSource: 'filePath'
-    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/fabric-cicd-sa.py'
+    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/scripts/fabric-cicd-sa.py'
     arguments: >
       --client-id $(ropcClientId)
       --tenant-id $(tenantId)
@@ -97,7 +97,7 @@ steps:
   displayName: 'Execute Post-Deployment Notebook: PostDeployment'
   inputs:
     scriptSource: 'filePath'
-    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/run_post_deployment_sa.py'
+    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/scripts/run_post_deployment_sa.py'
     arguments: >
       --workspace-id $(workspaceId)
       --tenant-id $(tenantId)
