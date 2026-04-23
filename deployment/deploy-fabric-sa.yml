@@ -10,33 +10,8 @@ parameters:
       - TEST
       - PROD
 
-resources:
-  repositories:
-    - repository: fabricWorkspace
-      type: git
-      name: test_Fabric/test_Fabric
-      ref: main
-
-pool:
-  vmImage: 'windows-latest'
-
+# Load environment-specific variable file at compile time
 variables:
-  # Common variables
-  - name: azureServiceConnection
-    value: 'devops-service-connection'
-
-  - name: tenantId
-    value: '9e929790-272d-4977-a2ab-301443c11ece'
-
-  # App registration client ID for ROPC flow (public client, no secret required)
-  - name: ropcClientId
-    value: ''  # TODO: replace with app registration that has public client flows enabled
-
-  # Service account UPN used to authenticate to the Fabric API
-  - name: saUsername
-    value: ''  # TODO: replace with actual service account UPN
-
-  # Environment-specific variables
   - ${{ if eq(parameters.environment, 'DEV') }}:
     - template: variables/dev-variables.yml
   - ${{ if eq(parameters.environment, 'TEST') }}:
@@ -44,67 +19,76 @@ variables:
   - ${{ if eq(parameters.environment, 'PROD') }}:
     - template: variables/prod-variables.yml
 
-steps:
-# 1. Checkout repositories
-- checkout: self
-  path: 's/AutomateEvenstream'
-  displayName: 'Checkout pipeline repository'
+stages:
+- stage: DeployFabric
+  displayName: 'Deploy Fabric [${{ parameters.environment }}]'
+  jobs:
+  - deployment: DeployFabricItems
+    displayName: 'Deploy Fabric Items'
+    # Azure DevOps environment — configure approvals/gates on the environment itself
+    environment: 'fabric-${{ lower(parameters.environment) }}'
+    pool:
+      vmImage: 'windows-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # 1. Checkout repository
+          - checkout: self
+            displayName: 'Checkout repository'
 
-- checkout: fabricWorkspace
-  path: 's/test_Fabric'
-  displayName: 'Checkout Fabric workspace repository'
+          # 2. Retrieve secrets from Azure Key Vault
+          - task: AzureKeyVault@2
+            displayName: 'Get Secrets from Key Vault'
+            inputs:
+              azureSubscription: '${{ variables.azureServiceConnection }}'
+              KeyVaultName: '$(keyVaultName)'
+              SecretsFilter: '$(saPasswordSecretName)'
+              RunAsPreJob: false
 
-# 2. Retrieve the service account password from Azure Key Vault
-- task: AzureKeyVault@2
-  displayName: 'Get Secrets from Key Vault'
-  inputs:
-    azureSubscription: '$(azureServiceConnection)'
-    KeyVaultName: 'ab-fabric-automation-akv'
-    SecretsFilter: 'sa-password'
-    RunAsPreJob: false
+          # 3. Install Python
+          - task: UsePythonVersion@0
+            displayName: 'Use Python 3.12'
+            inputs:
+              versionSpec: '3.12'
+              addToPath: true
 
-# 3. Install Python dependencies
-- task: UsePythonVersion@0
-  displayName: 'Use Python 3.12'
-  inputs:
-    versionSpec: '3.12'
-    addToPath: true
+          # 4. Install dependencies
+          - script: |
+              python -m pip install --upgrade pip
+              pip install fabric-cicd azure-identity requests
+            displayName: 'Install Python packages'
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install fabric-cicd azure-identity requests
-  displayName: 'Install Python packages'
+          # 5. Run fabric-cicd deployment script
+          - task: PythonScript@0
+            displayName: 'Deploy Fabric Items using fabric-cicd'
+            inputs:
+              scriptSource: 'filePath'
+              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/fabric-cicd-sa.py'
+              arguments: >
+                --client-id $(ropcClientId)
+                --tenant-id $(tenantId)
+                --sa-username $(saUsername)
+                --workspace-id $(workspaceId)
+                --environment ${{ parameters.environment }}
+                --repository-path $(Build.SourcesDirectory)/$(fabricRepositoryPath)
+            env:
+              PYTHONUNBUFFERED: '1'
+              SA_PASSWORD: ${{ format('$({0})', variables.saPasswordSecretName) }}
 
-# 4. Run fabric-cicd deployment script
-- task: PythonScript@0
-  displayName: 'Deploy Fabric Items using fabric-cicd'
-  inputs:
-    scriptSource: 'filePath'
-    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/scripts/fabric-cicd-sa.py'
-    arguments: >
-      --client-id $(ropcClientId)
-      --tenant-id $(tenantId)
-      --sa-username $(saUsername)
-      --workspace-id $(workspaceId)
-      --environment ${{ parameters.environment }}
-      --repository-path $(Build.SourcesDirectory)/test_Fabric
-  env:
-    PYTHONUNBUFFERED: '1'
-    SA_PASSWORD: $(sa-password)  # injected from Key Vault secret
-
-# 5. Execute post-deployment notebook
-- task: PythonScript@0
-  displayName: 'Execute Post-Deployment Notebook: PostDeployment'
-  inputs:
-    scriptSource: 'filePath'
-    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/scripts/run_post_deployment_sa.py'
-    arguments: >
-      --workspace-id $(workspaceId)
-      --tenant-id $(tenantId)
-      --client-id $(ropcClientId)
-      --sa-username $(saUsername)
-      --environment ${{ parameters.environment }}
-      --notebook-name PostDeployment
-  env:
-    PYTHONUNBUFFERED: '1'
-    SA_PASSWORD: $(sa-password)  # injected from Key Vault secret
+          # 6. Execute post-deployment notebook
+          - task: PythonScript@0
+            displayName: 'Execute Post-Deployment Notebook: PostDeployment'
+            inputs:
+              scriptSource: 'filePath'
+              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/run_post_deployment_sa.py'
+              arguments: >
+                --workspace-id $(workspaceId)
+                --tenant-id $(tenantId)
+                --client-id $(ropcClientId)
+                --sa-username $(saUsername)
+                --environment ${{ parameters.environment }}
+                --notebook-name PostDeployment
+            env:
+              PYTHONUNBUFFERED: '1'
+              SA_PASSWORD: ${{ format('$({0})', variables.saPasswordSecretName) }}

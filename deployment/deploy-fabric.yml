@@ -10,13 +10,6 @@ parameters:
       - TEST
       - PROD
 
-resources:
-  repositories:
-    - repository: fabricWorkspace
-      type: git
-      name: test_Fabric/test_Fabric
-      ref: main
-
 # Load environment-specific variable file at compile time
 variables:
   - ${{ if eq(parameters.environment, 'DEV') }}:
@@ -40,14 +33,9 @@ stages:
       runOnce:
         deploy:
           steps:
-          # 1. Checkout repositories
+          # 1. Checkout repository
           - checkout: self
-            path: 's/AutomateEvenstream'
-            displayName: 'Checkout pipeline repository'
-
-          - checkout: fabricWorkspace
-            path: 's/test_Fabric'
-            displayName: 'Checkout Fabric workspace repository'
+            displayName: 'Checkout repository'
 
           # 2. Retrieve secrets from Azure Key Vault
           - task: AzureKeyVault@2
@@ -76,13 +64,13 @@ stages:
             displayName: 'Deploy Fabric Items using fabric-cicd'
             inputs:
               scriptSource: 'filePath'
-              scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/scripts/fabric-cicd.py'
+              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/fabric-cicd.py'
               arguments: >
                 --client-id $(clientId)
                 --tenant-id $(tenantId)
                 --workspace-id $(workspaceId)
                 --environment ${{ parameters.environment }}
-                --repository-path $(Build.SourcesDirectory)/test_Fabric
+                --repository-path $(Build.SourcesDirectory)/$(fabricRepositoryPath)
             env:
               PYTHONUNBUFFERED: '1'
               CLIENT_SECRET: ${{ format('$({0})', variables.spClientSecretName) }}
@@ -92,7 +80,7 @@ stages:
             displayName: 'Execute Post-Deployment Notebook: PostDeployment'
             inputs:
               scriptSource: 'filePath'
-              scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/scripts/run_post_deployment.py'
+              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/run_post_deployment.py'
               arguments: >
                 --workspace-id $(workspaceId)
                 --tenant-id $(tenantId)

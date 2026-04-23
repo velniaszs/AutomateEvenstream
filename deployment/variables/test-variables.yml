@@ -8,6 +8,10 @@ variables:
   - name: workspaceName
     value: 'ab_demo_1'
 
+  # Path within the repo to the Fabric workspace folder
+  - name: fabricRepositoryPath
+    value: ''
+
   - name: azureServiceConnection
     value: 'devops-service-connection'
 

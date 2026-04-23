@@ -8,6 +8,10 @@ variables:
   - name: workspaceName
     value: 'Fabric Prod Workspace'
 
+  # Path within the repo to the Fabric workspace folder
+  - name: fabricRepositoryPath
+    value: 'test_Fabric'
+
   - name: azureServiceConnection
     value: 'devops-service-connection-prod'
 
