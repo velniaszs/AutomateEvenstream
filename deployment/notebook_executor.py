@@ -49,19 +49,22 @@ class NotebookExecutor:
     instead of notebookutils (for local execution).
     """
 
-    def __init__(self, workspace_id: str, tenant_id: str = None, client_id: str = None, client_secret: str = None):
+    def __init__(self, workspace_id: str, tenant_id: str = None, client_id: str = None, client_secret: str = None, credential=None):
         """
         Initialize the notebook executor for local execution.
 
         Args:
             workspace_id: Target Fabric workspace ID
+            credential: Any azure-identity TokenCredential (takes precedence when provided)
             tenant_id: Azure AD tenant ID (for Service Principal auth)
             client_id: Service Principal client ID
             client_secret: Service Principal client secret
         """
         self.workspace_id = workspace_id
 
-        if tenant_id and client_id and client_secret:
+        if credential is not None:
+            pass  # use the supplied credential as-is
+        elif tenant_id and client_id and client_secret:
             credential = ClientSecretCredential(
                 tenant_id=tenant_id,
                 client_id=client_id,

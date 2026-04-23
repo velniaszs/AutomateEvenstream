@@ -1,0 +1,110 @@
+trigger: none
+
+parameters:
+  - name: environment
+    displayName: 'Target Environment'
+    type: string
+    default: 'DEV'
+    values:
+      - DEV
+      - TEST
+      - PROD
+
+resources:
+  repositories:
+    - repository: fabricWorkspace
+      type: git
+      name: test_Fabric/test_Fabric
+      ref: main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  # Common variables
+  - name: azureServiceConnection
+    value: 'devops-service-connection'
+
+  - name: tenantId
+    value: '9e929790-272d-4977-a2ab-301443c11ece'
+
+  # App registration client ID for ROPC flow (public client, no secret required)
+  - name: ropcClientId
+    value: ''  # TODO: replace with app registration that has public client flows enabled
+
+  # Service account UPN used to authenticate to the Fabric API
+  - name: saUsername
+    value: ''  # TODO: replace with actual service account UPN
+
+  # Environment-specific variables
+  - ${{ if eq(parameters.environment, 'DEV') }}:
+    - template: variables/dev-variables.yml
+  - ${{ if eq(parameters.environment, 'TEST') }}:
+    - template: variables/test-variables.yml
+  - ${{ if eq(parameters.environment, 'PROD') }}:
+    - template: variables/prod-variables.yml
+
+steps:
+# 1. Checkout repositories
+- checkout: self
+  path: 's/AutomateEvenstream'
+  displayName: 'Checkout pipeline repository'
+
+- checkout: fabricWorkspace
+  path: 's/test_Fabric'
+  displayName: 'Checkout Fabric workspace repository'
+
+# 2. Retrieve the service account password from Azure Key Vault
+- task: AzureKeyVault@2
+  displayName: 'Get Secrets from Key Vault'
+  inputs:
+    azureSubscription: '$(azureServiceConnection)'
+    KeyVaultName: 'ab-fabric-automation-akv'
+    SecretsFilter: 'sa-password'
+    RunAsPreJob: false
+
+# 3. Install Python dependencies
+- task: UsePythonVersion@0
+  displayName: 'Use Python 3.12'
+  inputs:
+    versionSpec: '3.12'
+    addToPath: true
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install fabric-cicd azure-identity requests
+  displayName: 'Install Python packages'
+
+# 4. Run fabric-cicd deployment script
+- task: PythonScript@0
+  displayName: 'Deploy Fabric Items using fabric-cicd'
+  inputs:
+    scriptSource: 'filePath'
+    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/fabric-cicd-sa.py'
+    arguments: >
+      --client-id $(ropcClientId)
+      --tenant-id $(tenantId)
+      --sa-username $(saUsername)
+      --workspace-id $(workspaceId)
+      --environment ${{ parameters.environment }}
+      --repository-path $(Build.SourcesDirectory)/test_Fabric
+  env:
+    PYTHONUNBUFFERED: '1'
+    SA_PASSWORD: $(sa-password)  # injected from Key Vault secret
+
+# 5. Execute post-deployment notebook
+- task: PythonScript@0
+  displayName: 'Execute Post-Deployment Notebook: PostDeployment'
+  inputs:
+    scriptSource: 'filePath'
+    scriptPath: '$(Build.SourcesDirectory)/AutomateEvenstream/deployment/run_post_deployment_sa.py'
+    arguments: >
+      --workspace-id $(workspaceId)
+      --tenant-id $(tenantId)
+      --client-id $(ropcClientId)
+      --sa-username $(saUsername)
+      --environment ${{ parameters.environment }}
+      --notebook-name PostDeployment
+  env:
+    PYTHONUNBUFFERED: '1'
+    SA_PASSWORD: $(sa-password)  # injected from Key Vault secret
