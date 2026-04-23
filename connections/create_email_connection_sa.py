@@ -138,10 +138,10 @@ if __name__ == "__main__":
     if match:
         print(f"Connection '{args.display_name}' already exists (id: {match['id']}). Updating credentials...")
         result = update_connection(match["id"], args, headers)
-        print("Updated:")
+        print(f"Updated. Connection ID: {result['id']}")
     else:
         print(f"Connection '{args.display_name}' not found. Creating...")
         result = create_connection(args, headers)
-        print("Created:")
+        print(f"Created. Connection ID: {result['id']}")
 
     print(json.dumps(result, indent=2))
