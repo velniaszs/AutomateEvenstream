@@ -63,9 +63,13 @@ steps:
   inputs:
     scriptSource: 'filePath'
     scriptPath: '$(Build.SourcesDirectory)/connections/create_email_connection_sa.py'
+    arguments: >
+      --client-id $(ropcClientId)
+      --tenant-id $(tenantId)
+      --sa-username $(saUsername)
+      --conn-sa-username $(connSaUsername)
+      --display-name "TEST Detect Correct Outlook Conn"
   env:
     PYTHONUNBUFFERED: '1'
-    SA_USERNAME: $(saUsername)             # pipeline variable
     SA_PASSWORD: $(sa-password)            # injected from Key Vault secret
-    CONN_SA_USERNAME: $(connSaUsername)    # pipeline variable
     CONN_SA_PASSWORD: $(conn-sa-password)  # injected from Key Vault secret

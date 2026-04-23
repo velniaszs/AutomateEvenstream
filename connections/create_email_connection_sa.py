@@ -12,40 +12,33 @@ NOTE: Requires MFA to be disabled for the service account and the account to be
 excluded from Conditional Access policies that block ROPC flows.
 """
 
+import argparse
 import json
 import os
 import requests
 from azure.identity import UsernamePasswordCredential
 
-# --- App registration used for ROPC flow (must allow public client / ROPC) ---
-CLIENT_ID = "b5c04c9c-0588-418f-8f60-2d83d38cb635"
-TENANT_ID = "9e929790-272d-4977-a2ab-301443c11ece"
-
-# --- Service account credentials (caller identity - used to authenticate to the API) ---
-SA_USERNAME = os.environ["SA_USERNAME"]          # set via env var / Key Vault in pipeline
-SA_PASSWORD = os.environ["SA_PASSWORD"]          # set via env var / Key Vault in pipeline
-# --------------------------------------------------------------------------------------
-
-# --- New connection settings ---
-DISPLAY_NAME    = "TEST Detect Correct Outlook Conn"
-CONNECTION_TYPE = "MicrosoftOutlook"
-
-# --- Credentials stored inside the Fabric connection (the mailbox account) ---
-# These are separate from the caller identity above.
-CONN_SA_USERNAME = os.environ["CONN_SA_USERNAME"]  # set via env var / Key Vault in pipeline
-CONN_SA_PASSWORD = os.environ["CONN_SA_PASSWORD"]  # set via env var / Key Vault in pipeline
-# ------------------------------------------------------------------------------
-
-_FABRIC_API_BASE = "https://api.fabric.microsoft.com/"
-_FABRIC_SCOPE    = "https://api.fabric.microsoft.com/.default"
+_FABRIC_API_BASE  = "https://api.fabric.microsoft.com/"
+_FABRIC_SCOPE     = "https://api.fabric.microsoft.com/.default"
+CONNECTION_TYPE   = "MicrosoftOutlook"
 
 
-def get_headers() -> dict:
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Create or update a Fabric MicrosoftOutlook connection using a service account.")
+    parser.add_argument("--client-id",        required=True,  help="App registration client ID (public client / ROPC enabled)")
+    parser.add_argument("--tenant-id",        required=True,  help="Azure AD tenant ID")
+    parser.add_argument("--sa-username",      required=True,  help="Service account UPN (caller identity)")
+    parser.add_argument("--conn-sa-username", required=True,  help="Mailbox account UPN (stored in the connection)")
+    parser.add_argument("--display-name",     required=True,  help="Display name of the Fabric connection")
+    return parser.parse_args()
+
+
+def get_headers(args: argparse.Namespace) -> dict:
     credential = UsernamePasswordCredential(
-        client_id=CLIENT_ID,
-        tenant_id=TENANT_ID,
-        username=SA_USERNAME,
-        password=SA_PASSWORD,
+        client_id=args.client_id,
+        tenant_id=args.tenant_id,
+        username=args.sa_username,
+        password=os.environ["SA_PASSWORD"],
     )
     token = credential.get_token(_FABRIC_SCOPE).token
     return {
@@ -73,13 +66,13 @@ def list_connections(headers: dict) -> list:
     return results
 
 
-def create_connection(headers: dict) -> dict:
+def create_connection(args: argparse.Namespace, headers: dict) -> dict:
     payload = {
         "connectivityType": "ShareableCloud",
-        "displayName": DISPLAY_NAME,
+        "displayName": args.display_name,
         "connectionDetails": {
             "type": CONNECTION_TYPE,
-            "creationMethod": "MicrosoftOutlook.Actions",
+            "creationMethod": f"{CONNECTION_TYPE}.Actions",
             "parameters": [],
         },
         "privacyLevel": "None",
@@ -89,8 +82,8 @@ def create_connection(headers: dict) -> dict:
             "skipTestConnection": False,
             "credentials": {
                 "credentialType": "Basic",
-                "username": CONN_SA_USERNAME,
-                "password": CONN_SA_PASSWORD,
+                "username": args.conn_sa_username,
+                "password": os.environ["CONN_SA_PASSWORD"],
             }
         },
         "allowConnectionUsageInGateway": False,
@@ -108,7 +101,7 @@ def create_connection(headers: dict) -> dict:
     )
 
 
-def update_connection(connection_id: str, headers: dict) -> dict:
+def update_connection(connection_id: str, args: argparse.Namespace, headers: dict) -> dict:
     payload = {
         "connectivityType": "ShareableCloud",
         "credentialDetails": {
@@ -117,8 +110,8 @@ def update_connection(connection_id: str, headers: dict) -> dict:
             "skipTestConnection": False,
             "credentials": {
                 "credentialType": "Basic",
-                "username": CONN_SA_USERNAME,
-                "password": CONN_SA_PASSWORD,
+                "username": args.conn_sa_username,
+                "password": os.environ["CONN_SA_PASSWORD"],
             }
         },
     }
@@ -135,19 +128,20 @@ def update_connection(connection_id: str, headers: dict) -> dict:
 
 
 if __name__ == "__main__":
-    headers = get_headers()
+    args = parse_args()
+    headers = get_headers(args)
 
-    print(f"Listing connections...")
+    print("Listing connections...")
     connections = list_connections(headers)
-    match = next((c for c in connections if c.get("displayName") == DISPLAY_NAME), None)
+    match = next((c for c in connections if c.get("displayName") == args.display_name), None)
 
     if match:
-        print(f"Connection '{DISPLAY_NAME}' already exists (id: {match['id']}). Updating credentials...")
-        result = update_connection(match["id"], headers)
+        print(f"Connection '{args.display_name}' already exists (id: {match['id']}). Updating credentials...")
+        result = update_connection(match["id"], args, headers)
         print("Updated:")
     else:
-        print(f"Connection '{DISPLAY_NAME}' not found. Creating...")
-        result = create_connection(headers)
+        print(f"Connection '{args.display_name}' not found. Creating...")
+        result = create_connection(args, headers)
         print("Created:")
 
     print(json.dumps(result, indent=2))
