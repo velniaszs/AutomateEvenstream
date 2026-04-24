@@ -4,19 +4,19 @@ parameters:
   - name: environment
     displayName: 'Target Environment'
     type: string
-    default: 'DEV'
+    default: 'Dev'
     values:
-      - DEV
-      - TEST
-      - PROD
+      - Dev
+      - Test
+      - Prod
 
 # Load environment-specific variable file at compile time
 variables:
-  - ${{ if eq(parameters.environment, 'DEV') }}:
+  - ${{ if eq(parameters.environment, 'Dev') }}:
     - template: variables/dev-variables.yml
-  - ${{ if eq(parameters.environment, 'TEST') }}:
+  - ${{ if eq(parameters.environment, 'Test') }}:
     - template: variables/test-variables.yml
-  - ${{ if eq(parameters.environment, 'PROD') }}:
+  - ${{ if eq(parameters.environment, 'Prod') }}:
     - template: variables/prod-variables.yml
 
 stages:
@@ -64,7 +64,7 @@ stages:
             displayName: 'Deploy Fabric Items using fabric-cicd'
             inputs:
               scriptSource: 'filePath'
-              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/fabric-cicd.py'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/fabric-cicd.py'
               arguments: >
                 --client-id $(clientId)
                 --tenant-id $(tenantId)
@@ -80,7 +80,7 @@ stages:
             displayName: 'Execute Post-Deployment Notebook: PostDeployment'
             inputs:
               scriptSource: 'filePath'
-              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/run_post_deployment.py'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/run_post_deployment.py'
               arguments: >
                 --workspace-id $(workspaceId)
                 --tenant-id $(tenantId)

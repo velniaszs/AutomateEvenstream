@@ -1,0 +1,38 @@
+find_replace:
+  - find_value: "611585cb-6332-4849-995e-efce839973f1" #Workspace GUID to find
+    replace_value:
+      Dev: "dfe401d5-41e3-4ad9-8e82-a3886d070f3f"
+      Test: "dfe401d5-41e3-4ad9-8e82-a3886d070f3f"
+      Prod: "dfe401d5-41e3-4ad9-8e82-a3886d070f3f"
+    item_type: ["Notebook"]
+
+  - find_value: "0160fd4d-7e00-4c5e-8995-4a9174b13b63" #Lakehouse AopConfigLH GUID to find
+    replace_value:
+      Dev: "07e72d95-7550-4b18-a9d2-52e2e69b4830"
+      Test: "07e72d95-7550-4b18-a9d2-52e2e69b4830"
+      Prod: "07e72d95-7550-4b18-a9d2-52e2e69b4830" 
+    item_type: ["Notebook"]
+
+  - find_value: "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com" #kusto cluster uri to find
+    replace_value:
+      Dev: "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com"
+      Test: "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com"
+      Prod: "https://trd-6uegjpfbf030eemxtw.z1.kusto.fabric.microsoft.com"
+    item_type: ["Notebook"]
+
+  - find_value: "371bdff8-1e2c-4a6a-9836-4494786f0b3e" #outlook connection
+    replace_value:
+      Dev: "af877b97-0870-41b4-9f3d-a75af4f884c2"
+      Test: "371bdff8-1e2c-4a6a-9836-4494786f0b3e"#"d66ead08-0cbf-4006-a510-f8cf5f6d7c30"
+      Prod: "07e72d95-7550-4b18-a9d2-52e2e69b4830" 
+    item_type: ["DataPipeline"]
+
+  - find_value: "b2d3ab64-b6fb-4388-9162-02d087b4d870" #notebook connection
+    replace_value:
+      Dev: "na"
+      Test: "d5525134-feca-457c-8624-e281d8905453"
+      Prod: "na" 
+    item_type: ["DataPipeline"]
+
+
+    

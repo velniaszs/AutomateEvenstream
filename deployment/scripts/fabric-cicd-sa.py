@@ -20,7 +20,7 @@ parser.add_argument('--client-id',        required=True, help='App registration 
 parser.add_argument('--tenant-id',        required=True, help='Azure AD Tenant ID')
 parser.add_argument('--sa-username',      required=True, help='Service account UPN')
 parser.add_argument('--workspace-id',     required=True, help='Fabric Workspace ID')
-parser.add_argument('--environment',      default='DEV', help='Deployment environment (DEV, TEST, PROD)')
+parser.add_argument('--environment',      default='Dev', help='Deployment environment (Dev, Test, Prod)')
 parser.add_argument('--repository-path',  default='workspace', help='Path to repository with Fabric workspace items')
 args = parser.parse_args()
 

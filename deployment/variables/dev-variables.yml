@@ -1,19 +1,19 @@
 variables:
   - name: environment
-    value: 'DEV'
+    value: 'TEST'
 
   - name: workspaceId
-    value: 'your-dev-workspace-id'
+    value: 'dfe401d5-41e3-4ad9-8e82-a3886d070f3f'
 
   - name: workspaceName
-    value: 'Fabric Dev Workspace'
+    value: 'ab_demo_1'
 
   # Path within the repo to the Fabric workspace folder
   - name: fabricRepositoryPath
-    value: 'test_Fabric'
+    value: ''
 
   - name: azureServiceConnection
-    value: 'devops-service-connection-dev'
+    value: 'devops-service-connection'
 
   - name: tenantId
     value: '9e929790-272d-4977-a2ab-301443c11ece'
@@ -22,11 +22,11 @@ variables:
     value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
 
   - name: keyVaultName
-    value: 'ab-fabric-automation-akv-dev'
+    value: 'ab-fabric-automation-akv'
 
   # Name of the Key Vault secret holding the SP client secret (fabric-cicd)
   - name: spClientSecretName
-    value: 'fabric-monit-secret-dev'
+    value: 'fabric-monit-secret'
 
   # --- Connection deployment variables ---
 
@@ -36,27 +36,24 @@ variables:
 
   # Service account used to call the Fabric API (caller identity)
   - name: saUsername
-    value: 'user3@MngEnvMCAP985281.onmicrosoft.com'
+    value: ''  # TODO: service account UPN for TEST
 
   # Service account whose credentials are stored in the Outlook connection
   - name: connSaUsername
-    value: 'user3@MngEnvMCAP985281.onmicrosoft.com'
+    value: ''  # TODO: mailbox UPN for TEST
 
   # Service Principal whose credentials are stored in the Notebook connection
   - name: spClientId
     value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
 
   - name: outlookDisplayName
-    value: 'DEV Detect Correct Outlook Conn'
+    value: 'TEST Detect Correct Outlook Conn'
 
   - name: notebookDisplayName
-    value: 'DEV Detect Correct Notebook Conn'
+    value: 'TEST Detect Correct Notebook Conn'
 
   - name: saPasswordSecretName
-    value: 'sa-password-dev'
+    value: 'sa-password-test'
 
   - name: connSaPasswordSecretName
-    value: 'conn-sa-password-dev'
-
-  - name: connSpClientSecretName
-    value: 'sp-client-secret-dev'
+    value: 'conn-sa-password-test'

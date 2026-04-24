@@ -4,19 +4,19 @@ parameters:
   - name: environment
     displayName: 'Target Environment'
     type: string
-    default: 'DEV'
+    default: 'Dev'
     values:
-      - DEV
-      - TEST
-      - PROD
+      - Dev
+      - Test
+      - Prod
 
 # Load environment-specific variable file at compile time
 variables:
-  - ${{ if eq(parameters.environment, 'DEV') }}:
+  - ${{ if eq(parameters.environment, 'Dev') }}:
     - template: variables/dev-variables.yml
-  - ${{ if eq(parameters.environment, 'TEST') }}:
+  - ${{ if eq(parameters.environment, 'Test') }}:
     - template: variables/test-variables.yml
-  - ${{ if eq(parameters.environment, 'PROD') }}:
+  - ${{ if eq(parameters.environment, 'Prod') }}:
     - template: variables/prod-variables.yml
 
 stages:
@@ -65,7 +65,7 @@ stages:
             displayName: 'Create or Update Connections'
             inputs:
               scriptSource: 'filePath'
-              scriptPath: '$(Build.SourcesDirectory)/deployment/scripts/create_connection.py'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/create_connection.py'
               arguments: >
                 --tenant-id $(tenantId)
                 --client-id $(clientId)
