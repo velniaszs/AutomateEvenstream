@@ -26,7 +26,7 @@ stages:
   - deployment: DeployFabricItems
     displayName: 'Deploy Fabric Items'
     # Azure DevOps environment — configure approvals/gates on the environment itself
-    environment: 'fabric-${{ lower(parameters.environment) }}'
+    environment: '${{ parameters.environment }}'
     pool:
       vmImage: 'windows-latest'
     strategy:
