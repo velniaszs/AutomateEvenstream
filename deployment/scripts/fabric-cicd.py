@@ -19,6 +19,8 @@ parser.add_argument('--tenant-id', required=True, help='Azure AD Tenant ID')
 parser.add_argument('--workspace-id', required=True, help='Fabric Workspace ID')
 parser.add_argument('--environment', default='Dev', help='Deployment environment (Dev, Test, Prod)')
 parser.add_argument('--repository-path', default='workspace', help='Path to repository with Fabric workspace items')
+parser.add_argument('--items-in-scope', required=True,
+                    help='Comma-separated list of item types to deploy (e.g. "Notebook,DataPipeline").')
 
 args = parser.parse_args()
 
@@ -32,11 +34,12 @@ token_credential = ClientSecretCredential(client_id=client_id, client_secret=cli
 workspace_id = args.workspace_id
 environment = args.environment
 repository_directory = args.repository_path
-item_type_in_scope = ["Notebook", "Lakehouse", "DataPipeline", "Eventhouse", "KQLDatabase"]
+item_type_in_scope = [item.strip() for item in args.items_in_scope.split(",") if item.strip()]
 
 print(f"==> Deploying Fabric items from: {repository_directory}")
 print(f"    Environment: {environment}")
 print(f"    Workspace ID: {workspace_id}")
+print(f"    Items in scope: {item_type_in_scope}")
 
 # Initialize the FabricWorkspace object with the required parameters
 target_workspace = FabricWorkspace(

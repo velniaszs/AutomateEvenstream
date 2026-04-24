@@ -71,6 +71,7 @@ stages:
                 --workspace-id $(workspaceId)
                 --environment ${{ parameters.environment }}
                 --repository-path $(Build.SourcesDirectory)/$(fabricRepositoryPath)
+                --items-in-scope "Notebook,Lakehouse,DataPipeline,Eventhouse,KQLDatabase"
             env:
               PYTHONUNBUFFERED: '1'
               CLIENT_SECRET: ${{ format('$({0})', variables.spClientSecretName) }}
