@@ -1,59 +1,29 @@
 variables:
-  - name: environment
-    value: 'TEST'
-
-  - name: workspaceId
-    value: 'dfe401d5-41e3-4ad9-8e82-a3886d070f3f'
-
-  - name: workspaceName
-    value: 'ab_demo_1'
-
+  environment: "Test"
+  workspaceId: "dfe401d5-41e3-4ad9-8e82-a3886d070f3f"
+  workspaceName: "ab_demo_1"
   # Path within the repo to the Fabric workspace folder
-  - name: fabricRepositoryPath
-    value: ''
-
-  - name: azureServiceConnection
-    value: 'devops-service-connection'
-
-  - name: tenantId
-    value: '9e929790-272d-4977-a2ab-301443c11ece'
-
-  - name: clientId
-    value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
-
-  - name: keyVaultName
-    value: 'ab-fabric-automation-akv'
-
+  fabricRepositoryPath: ""
+  azureServiceConnection: "devops-service-connection"
+  tenantId: "9e929790-272d-4977-a2ab-301443c11ece"
+  clientId: "b5c04c9c-0588-418f-8f60-2d83d38cb635"
+  keyVaultName: "ab-fabric-automation-akv"
   # Name of the Key Vault secret holding the SP client secret (fabric-cicd)
-  - name: spClientSecretName
-    value: 'fabric-monit-secret'
+  spClientSecretName: "fabric-monit-secret"
 
   # --- Connection deployment variables ---
 
   # ROPC app registration (public client, no secret)
-  - name: ropcClientId
-    value: ''  # TODO: ROPC-enabled app registration client ID
-
+  ropcClientId: ""  # TODO: ROPC-enabled app registration client ID
   # Service account used to call the Fabric API (caller identity)
-  - name: saUsername
-    value: ''  # TODO: service account UPN for TEST
-
+  saUsername: ""  # TODO: service account UPN for Test
   # Service account whose credentials are stored in the Outlook connection
-  - name: connSaUsername
-    value: ''  # TODO: mailbox UPN for TEST
-
+  connSaUsername: ""  # TODO: mailbox UPN for Test
   # Service Principal whose credentials are stored in the Notebook connection
-  - name: spClientId
-    value: 'b5c04c9c-0588-418f-8f60-2d83d38cb635'
+  spClientId: "b5c04c9c-0588-418f-8f60-2d83d38cb635"
 
-  - name: outlookDisplayName
-    value: 'TEST Detect Correct Outlook Conn'
+  outlookDisplayName: "Test Detect Correct Outlook Conn"
+  notebookDisplayName: "Test Detect Correct Notebook Conn"
 
-  - name: notebookDisplayName
-    value: 'TEST Detect Correct Notebook Conn'
-
-  - name: saPasswordSecretName
-    value: 'sa-password-test'
-
-  - name: connSaPasswordSecretName
-    value: 'conn-sa-password-test'
+  saPasswordSecretName: "sa-password-test"
+  connSaPasswordSecretName: "conn-sa-password-test"
