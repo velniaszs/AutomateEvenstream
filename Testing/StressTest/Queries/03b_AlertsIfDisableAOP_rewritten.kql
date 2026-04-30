@@ -1,0 +1,92 @@
+// 03b_AlertsIfDisableAOP_rewritten.kql
+// Memory-optimized rewrite of 03_AlertsIfDisableAOP.kql.
+// Goals: avoid global serialize over WorkspaceOutboundAccessProtection,
+//        prune AOP / AlertLogs scans by joining to candidate workspaces first,
+//        push leftanti AllowedItemKind filter as early as possible,
+//        broadcast small lookups, shuffle big joins on WorkspaceId.
+//
+// Original failure: E_LOW_MEMORY_CONDITION caused by `serialize | next()` over
+// the full WorkspaceOutboundAccessProtection table plus a full-table leftanti
+// against AlertLogs.
+
+let lastRunParam   = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d),
+                           lastRunParam > ago(1h), ago(1h),
+                           lastRunParam);
+//
+// 1. Allowed item kinds: tiny lookup. Materialize so it is computed once.
+//
+let ak = materialize(AllowedItemKind | project ItemKind);
+//
+// 2. Monitored workspaces with OAP enabled in Dataverse (small set).
+//
+let daop = materialize(
+    DataverseWorkspace
+    | summarize arg_max(ingestion_time(), OAPActivity, IsMonitored) by WorkspaceId
+    | where OAPActivity == "EnableWorkspaceOutboundAccessProtection"
+    | where IsMonitored == true
+    | project WorkspaceId
+);
+//
+// 3. Candidate WorkspaceLogs events. Apply the AllowedItemKind leftanti
+//    BEFORE the heavy joins so we shrink the left side as much as possible.
+//
+let wl = materialize(
+    WorkspaceLogs
+    | where ingestion_time() between (startTimeFilter .. now())
+    | where type == "Microsoft.Fabric.ItemCreateSucceeded"
+    | where data_workspaceId in (daop)            // prune to monitored workspaces immediately
+    | join kind=leftanti hint.strategy=broadcast ak
+        on $left.data_itemKind == $right.ItemKind
+    | project WorkspaceName = data_workspaceName,
+              data_workspaceId,
+              wstime         = ["time"],
+              data_itemName,
+              data_itemId,
+              data_itemKind,
+              UserId         = data_executingPrincipalId
+);
+//
+// 4. Disable / enable windows from WorkspaceOutboundAccessProtection.
+//    - Filter to candidate workspaces FIRST so partition operates on a
+//      small slice instead of the whole table.
+//    - Use `partition by WorkspaceId` instead of global `serialize | next()`.
+//      This keeps state per-workspace and parallelizes across nodes.
+//    - Apply a coarse time filter so we don't drag in 2y of unrelated rows.
+//
+let candidateWorkspaces = materialize(wl | distinct data_workspaceId);
+let aopWindowStart      = startTimeFilter - 1d;   // small overlap to catch open intervals
+let aop =
+    WorkspaceOutboundAccessProtection
+    | where WorkspaceId in (candidateWorkspaces)
+    | where CreationTime >= aopWindowStart
+    | project WorkspaceId, CreationTime, Activity
+    | partition hint.strategy=shuffle by WorkspaceId
+      (
+          order by CreationTime asc
+          | extend endTime = coalesce(next(CreationTime), datetime(2999-01-01))
+          | where Activity == "DisableWorkspaceOutboundAccessProtection"
+          | project WorkspaceId, startTime = CreationTime, endTime
+      );
+//
+// 5. Pre-shrunk AlertLogs side for the dedupe leftanti.
+//    Only consider alerts for the same candidate workspaces and inside the
+//    relevant time window; drag in only the join columns.
+//
+let existingAlerts =
+    AlertLogs
+    | where WorkspaceId in (candidateWorkspaces)
+    | where ingestion_time() >= aopWindowStart
+    | project WorkspaceId, data_itemId;
+//
+// 6. Final assembly. Broadcast small `aop`; shuffle the big wl join key.
+//
+wl
+| join kind=inner hint.strategy=shuffle hint.shufflekey=data_workspaceId aop
+    on $left.data_workspaceId == $right.WorkspaceId
+| where wstime > startTime and wstime <= endTime
+| extend AlertStatus = "Initial",
+         WorkspaceId = data_workspaceId
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus, UserId
+| join kind=leftanti hint.strategy=shuffle hint.shufflekey=WorkspaceId existingAlerts
+    on WorkspaceId, data_itemId

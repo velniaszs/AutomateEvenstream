@@ -1,0 +1,26 @@
+let latestWorkspaceEmail = 
+workspace_owner
+| where isnotempty(trim(" ", PrimaryEmail)) or isnotempty(trim(" ", SecondaryEmail))
+| extend emails = strcat(PrimaryEmail, ";", SecondaryEmail)
+| summarize arg_max(ingestion_time(), emails) by workspaceId
+| project emails, workspaceId;
+AlertLogs
+| where ingestion_time() > ago(10min)
+| extend IngestionTime = ingestion_time()
+| summarize arg_max(IngestionTime, *) by WorkspaceId, data_itemId
+| where AlertStatus == "Initial"
+| join kind=inner (latestWorkspaceEmail) on $left.WorkspaceId == $right.workspaceId
+| project WorkspaceId,
+    emails,
+    data_itemId,
+    htmlRow = strcat(
+    '<tr>',
+    '<td style="padding:8px;">' , WorkspaceId, '</td>',
+    '<td style="padding:8px;">', data_itemId, '</td>',
+    '<td style="padding:8px;">', data_itemKind, '</td>',
+    '<td style="padding:8px;">', UserId, '</td>',
+    '<td style="padding:8px;">', format_datetime(wstime, 'yyyy-MM-dd HH:mm'), '</td>',
+    '</tr>'
+)
+| summarize HtmlRows = strcat_array(make_list(htmlRow), ''),
+    ItemIds = strcat_array(make_list(data_itemId),", ") by WorkspaceId, emails

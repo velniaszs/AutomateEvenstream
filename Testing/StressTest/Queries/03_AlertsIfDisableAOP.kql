@@ -1,0 +1,44 @@
+// Email aggregation for AlertLogs: if disabled OAP
+let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);
+let ak = AllowedItemKind;
+let wl = WorkspaceLogs
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < now()
+| extend IngestionTime = ingestion_time()
+| where type == "Microsoft.Fabric.ItemCreateSucceeded"
+| project WorkspaceName = data_workspaceName, data_workspaceId, wstime = ["time"], data_itemName, data_itemId, data_itemKind, type, IngestionTime, UserId = data_executingPrincipalId;
+let daop =
+DataverseWorkspace
+| summarize arg_max(ingestion_time(), OAPActivity, IsMonitored) by WorkspaceId
+| where OAPActivity == "EnableWorkspaceOutboundAccessProtection"
+| where IsMonitored == true
+| project WorkspaceId;
+let aop =
+WorkspaceOutboundAccessProtection
+| extend IngestionTime = ingestion_time()
+| order by WorkspaceId, CreationTime asc
+| serialize 
+| extend NextCreationTime = next(CreationTime)
+| extend NextActivity = next(Activity)
+| extend NextWorkspaceId = next(WorkspaceId)
+| extend endTime = iff(WorkspaceId == NextWorkspaceId and Activity != NextActivity, NextCreationTime, datetime(2999-01-01))
+| where Activity == "DisableWorkspaceOutboundAccessProtection"
+| project WorkspaceId, startTime = CreationTime, endTime;
+wl
+| join kind = inner 
+    daop
+    on $left.data_workspaceId == $right.WorkspaceId
+| join kind = inner 
+    aop
+    on  $left.data_workspaceId == $right.WorkspaceId
+| join kind = leftanti 
+    ak
+    on $left.data_itemKind == $right.ItemKind
+| where wstime > startTime and wstime <= endTime
+| extend AlertStatus = "Initial"
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus, UserId
+// 3. Filter out records that already exist in the destination table
+| join kind=leftanti (
+    AlertLogs 
+) on WorkspaceId, data_itemId

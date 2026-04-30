@@ -1,0 +1,16 @@
+// AOPAlertLogs entries that have no associated workspace owner email (NoEmail branch).
+let validOwners = 
+workspace_owner
+| where isnotempty( trim(" ", PrimaryEmail)) or isnotempty( trim(" ", SecondaryEmail))
+| extend emails = strcat(PrimaryEmail,";",SecondaryEmail)
+| summarize arg_max(ingestion_time(), emails) by workspaceId
+| project emails, workspaceId;
+AlertLogs
+| where ingestion_time() > ago(10min)
+| extend IngestionTime = ingestion_time()
+| summarize  arg_max(IngestionTime,*) by WorkspaceId, data_itemId
+| where AlertStatus == "Initial"
+| join kind=leftanti (
+    validOwners
+) on $left.WorkspaceId == $right.workspaceId
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus = "NoEmail", UserId

@@ -1,0 +1,10 @@
+// @resolver: AlertLogs WorkspaceId data_itemId
+// Update status of selected AlertLogs rows for a workspace -> EmailSent.
+let targetWorkspaceId = guid("{{workspaceId}}");
+let targetItemIdsString = "{{ids}}";
+let targetItemIds = split(replace_string(targetItemIdsString, " ", ""), ",");
+AlertLogs
+| extend IngestionTime = ingestion_time()
+| summarize arg_max(IngestionTime, *) by WorkspaceId, data_itemId
+| where WorkspaceId == targetWorkspaceId and data_itemId in (targetItemIds)
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId, AlertStatus = "EmailSent", UserId

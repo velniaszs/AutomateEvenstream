@@ -1,0 +1,11 @@
+// @resolver: AOPAlertLogs WorkspaceId Id
+// Update status of selected AOPAlertLogs rows for a workspace -> EmailSent.
+let targetWorkspaceId = guid("{{workspaceId}}");
+let TargetIdsString = "{{ids}}";
+let targetIds = split(replace_string(TargetIdsString," ", ""),  ",");
+AOPAlertLogs
+| where ingestion_time() > ago(10min)
+| summarize arg_max(CreationTime, *) by WorkspaceId, Id
+| where AlertStatus == "Initial"
+| where WorkspaceId == targetWorkspaceId and Id in (targetIds)
+| project WorkspaceId, ToChangeAOP, AOP, AOPMustBe, CreationTime, UserId, AlertStatus = "EmailSent", Id, UserKey

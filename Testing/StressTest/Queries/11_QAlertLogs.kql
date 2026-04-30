@@ -1,0 +1,6 @@
+AlertLogs
+| where ingestion_time() >= ago(20min)
+| where ingestion_time() < now()
+| summarize arg_max(ingestion_time(), WorkspaceName, wstime, data_itemName, AlertStatus, data_itemKind) by WorkspaceId, data_itemId
+| where AlertStatus in ("EmailSent", "NoEmail")
+| project WorkspaceName, WorkspaceId, wstime, data_itemKind, data_itemName, data_itemId

@@ -1,0 +1,32 @@
+let lastRunParam = toscalar(MonitoringLastRunTime | summarize max(LastRunTime));
+let startTimeFilter = case(isnull(lastRunParam), ago(100d), lastRunParam > ago(1h), ago(1h), lastRunParam);
+let daop =
+DataverseWorkspace
+| summarize arg_max(ingestion_time(), OAPActivity, IsMonitored) by WorkspaceId
+| where IsMonitored = true
+| project daopWorkspaceId = WorkspaceId, daopActivity = OAPActivity;
+let aop = 
+WorkspaceOutboundAccessProtection
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < now()
+| project Activity, WorkspaceId, CreationTime,Id, UserId, UserKey;
+let laop = 
+WorkspaceOutboundAccessProtection
+| where ingestion_time() > startTimeFilter
+| where ingestion_time() < now()
+| summarize arg_max(CreationTime, Activity) by WorkspaceId
+| project WorkspaceId, LastActivity = Activity;
+let al = AOPAlertLogs
+| project Id;
+aop
+| join kind=inner (
+    daop 
+) on $left.WorkspaceId == $right.daopWorkspaceId
+| join kind=inner (
+    laop
+) on WorkspaceId
+| join kind=leftanti (
+    al
+) on Id
+| where Activity !=daopActivity
+| project WorkspaceId, ToChangeAOP = iif(LastActivity==daopActivity,false,true), AOP = LastActivity, AOPMustBe = daopActivity, CreationTime, UserId, AlertStatus = "Initial", Id, UserKey
