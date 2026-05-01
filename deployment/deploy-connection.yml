@@ -25,8 +25,12 @@ stages:
   jobs:
   - deployment: CreateConnections
     displayName: 'Create or Update Connections'
-    # Azure DevOps environment — configure approvals/gates on the environment itself
-    environment: '${{ parameters.environment }}'
+    # Azure DevOps environment — configure approvals/gates on the environment itself.
+    # Dev runs against the 'Test' DevOps environment (no separate Dev environment exists).
+    ${{ if eq(parameters.environment, 'Dev') }}:
+      environment: 'Test'
+    ${{ else }}:
+      environment: '${{ parameters.environment }}'
     pool:
       vmImage: 'windows-latest'
     strategy:
