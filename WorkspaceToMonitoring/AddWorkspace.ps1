@@ -82,7 +82,7 @@ $eventstreamCheck = & $getEvenstreamIdScript -WorkspaceId $MonWorkspaceId -AuthT
 if (-not $eventstreamCheck.Exists) {
     Write-Host "--- Step 4: Creating Blank Eventstream in designated folder if stream does not exists---"
     $createEventstreamScript = Join-Path $PSScriptRoot "\create-eventstream.ps1"
-    $esResult = & $createEventstreamScript -WorkspaceId $MonWorkspaceId -AuthToken $fabricToken -FolderId $folderId -EventstreamName $AddCapacityName -capacityName $AddCapacityName
+    $esResult = & $createEventstreamScript -WorkspaceId $MonWorkspaceId -AuthToken $fabricToken -FolderId $folderId -EventstreamName $AddCapacityName
     $eventstreamId = $esResult.Id
 
     Write-Host "--- Waiting 60s ..."

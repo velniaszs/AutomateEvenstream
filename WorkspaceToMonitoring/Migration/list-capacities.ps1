@@ -18,13 +18,15 @@ $headers = @{
 }
 
 # 2. List Capacities with Pagination
+# Note: requires a Power BI-scoped token (audience 'https://analysis.windows.net/powerbi/api').
+# A Fabric-scoped token will return 401 here; the Fabric admin API does not expose this endpoint.
 $url = "https://api.powerbi.com/v1.0/myorg/admin/capacities"
 $allCapacities = @()
 
 do {
     #Write-Host "Fetching from: $url"
     $response = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
-    
+
     if ($response.value) {
         $allCapacities += $response.value
     }

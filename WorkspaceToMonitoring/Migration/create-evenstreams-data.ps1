@@ -50,6 +50,11 @@ foreach ($group in $uniqueGroups) {
                     $node.name = "$group-stream"
                 }
             }
+            if ($destination.inputSchemas) {
+                foreach ($inputSchema in $destination.inputSchemas) {
+                    $inputSchema.name = "$group-stream"
+                }
+            }
         }
     }
 

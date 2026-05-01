@@ -114,6 +114,11 @@ if ($IsEvenstreamEmpty -eq "yes") {
                     $node.name = "$capacityName-stream"
                 }
             }
+            if ($destination.inputSchemas) {
+                foreach ($inputSchema in $destination.inputSchemas) {
+                    $inputSchema.name = "$capacityName-stream"
+                }
+            }
         }
     }
 

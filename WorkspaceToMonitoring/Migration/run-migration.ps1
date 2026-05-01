@@ -41,6 +41,16 @@ if ([string]::IsNullOrWhiteSpace($kqlToken)) {
 Write-Host "KQL Token retrieved."
 #Write-Host $kqlToken
 
+# 3. Get Power BI Token (admin/capacities endpoint requires PBI audience).
+Write-Host "--- Step 0: Getting Power BI Token ---"
+$pbiToken = & $fabricTokenScript -tenantId $TenantId -clientId $ClientId -client_secret $ClientSecret -Scope 'pbi'
+
+if ([string]::IsNullOrWhiteSpace($pbiToken)) {
+    Write-Error "Failed to retrieve Power BI Token."
+    return
+}
+Write-Host "Power BI Token retrieved."
+
 Write-Host "--- Step 1: Getting Eventhouse Database ID ---"
 $getEventhouseDbIdScript = Join-Path $PSScriptRoot "..\get-eventhouse-db-id.ps1"
 $dbDetails = & $getEventhouseDbIdScript -WorkspaceId $MonWorkspaceId -AuthToken $fabricToken -EventhouseName $MonEventhouseName
@@ -48,7 +58,7 @@ $databaseId = $dbDetails.Id
 
 Write-Host "--- Step 2: Download Capacities ---"
 $listCapacitiesScript = Join-Path $PSScriptRoot "\list-capacities.ps1"
-& $listCapacitiesScript -AuthToken $fabricToken
+& $listCapacitiesScript -AuthToken $pbiToken
 
 Write-Host "--- Step 3: Download Workspaces ---"
 $listWorkspacesScript = Join-Path $PSScriptRoot "\list-workspaces.ps1"

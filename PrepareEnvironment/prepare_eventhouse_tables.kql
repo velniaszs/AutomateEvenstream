@@ -41,6 +41,13 @@
 
 .create-merge table workspace_owner_staging (workspaceId:guid, PrimaryEmail:string, SecondaryEmail:string, modifiedon:datetime)
 
+// Clean placeholder values: blank PrimaryEmail when it contains "primary",
+// blank SecondaryEmail when it contains "secondary" (case-insensitive).
+.set-or-replace workspace_owner <|
+workspace_owner
+| extend PrimaryEmail   = iff(PrimaryEmail   contains "primary",   "", PrimaryEmail)
+| extend SecondaryEmail = iff(SecondaryEmail contains "secondary", "", SecondaryEmail)
+
 .create-merge table DataverseWorkspace (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon:datetime, modifiedon:datetime)
 
 .create-merge table DataverseWorkspace_Staging (WorkspaceId:guid, OAPActivity:string, IsMonitored:bool, createdon:datetime, modifiedon:datetime)

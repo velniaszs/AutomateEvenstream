@@ -17,6 +17,14 @@
                 {
                     "name": "LoadWorkspaceChanges-stream"
                 }
+            ],
+            "inputSchemas": [
+                {
+                    "name": "LoadWorkspaceChanges-stream",
+                    "schema": {
+                        "columns": []
+                    }
+                }
             ]
         }
     ],
